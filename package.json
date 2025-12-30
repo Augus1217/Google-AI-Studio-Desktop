@@ -1,0 +1,29 @@
+{
+  "name": "google-ai-studio-desktop",
+  "version": "1.0.0",
+  "description": "Google AI Studio Desktop Client",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "build": {
+    "appId": "com.google.ai.studio.desktop",
+    "productName": "Google AI Studio Desktop",
+    "linux": {
+      "icon": "icon.png"
+    },
+    "win": {
+      "icon": "icon.png"
+    },
+    "mac": {
+      "icon": "icon.png"
+    }
+  },
+  "keywords": [],
+  "author": "Augus <imlindora@gmail.com>",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "electron": "^39.2.6"
+  }
+}
