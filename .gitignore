@@ -3,8 +3,6 @@ node_modules/
 
 # Build Output
 dist/
-out/
-build/
 
 # System Files
 .DS_Store

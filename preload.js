@@ -30,7 +30,11 @@ const translations = {
         'login_rejected_tooltip': 'Login Rejected? Click here to use External Login!',
         'reset_app': 'Reset App',
         'reset_app_confirm': 'Are you sure you want to reset the app? This will clear all data and restart.',
-        'copy_link': 'Copy Link'
+        'copy_link': 'Copy Link',
+        'window_controls_position': 'Window Controls Position',
+        'position_auto': 'Auto (OS Default)',
+        'position_left': 'Left (macOS style)',
+        'position_right': 'Right (Windows/Linux style)'
     },
     'zh-TW': {
         'settings': '設定',
@@ -49,7 +53,11 @@ const translations = {
         'login_rejected_tooltip': '登入被拒？點擊此處使用外部登入！',
         'reset_app': '重置應用程式',
         'reset_app_confirm': '您確定要重置應用程式嗎？這將清除所有資料並重新啟動。',
-        'copy_link': '複製連結'
+        'copy_link': '複製連結',
+        'window_controls_position': '視窗按鈕位置',
+        'position_auto': '自動 (依作業系統)',
+        'position_left': '左側 (macOS 風格)',
+        'position_right': '右側 (Windows/Linux 風格)'
     },
     'zh-CN': {
         'settings': '设置',
@@ -68,7 +76,11 @@ const translations = {
         'login_rejected_tooltip': '登录被拒？点击此处使用外部登录！',
         'reset_app': '重置应用程序',
         'reset_app_confirm': '您确定要重置应用程序吗？这将清除所有数据并重新启动。',
-        'copy_link': '复制链接'
+        'copy_link': '复制链接',
+        'window_controls_position': '窗口按钮位置',
+        'position_auto': '自动 (依操作系统)',
+        'position_left': '左侧 (macOS 风格)',
+        'position_right': '右侧 (Windows/Linux 风格)'
     },
     'ja': {
         'settings': '設定',
@@ -87,7 +99,11 @@ const translations = {
         'login_rejected_tooltip': 'ログインが拒否されましたか？ここをクリックして外部ログインを使用してください！',
         'reset_app': 'アプリをリセット',
         'reset_app_confirm': 'アプリをリセットしてもよろしいですか？すべてのデータが消去され、再起動します。',
-        'copy_link': 'リンクをコピー'
+        'copy_link': 'リンクをコピー',
+        'window_controls_position': 'ウィンドウボタンの位置',
+        'position_auto': '自動 (OSデフォルト)',
+        'position_left': '左側 (macOSスタイル)',
+        'position_right': '右側 (Windows/Linuxスタイル)'
     }
 };
 
@@ -132,17 +148,27 @@ function injectTitleBar() {
         top: 0;
         left: 0;
         width: 100%;
-        height: 32px;
+        height: 60px; /* Increased height for two rows */
         background: #202124;
+        display: flex;
+        flex-direction: column; /* Stack vertically */
+        z-index: 999999; /* Higher z-index */
+        box-sizing: border-box;
+        border-bottom: 1px solid #3c4043;
+        pointer-events: auto; /* Ensure clickable */
+    `;
+
+    // Row 1: Buttons
+    const buttonRow = document.createElement('div');
+    buttonRow.style.cssText = `
+        width: 100%;
+        height: 32px;
         display: flex;
         justify-content: space-between;
         align-items: center;
         -webkit-app-region: drag;
-        z-index: 999999; /* Higher z-index */
-        box-sizing: border-box;
         padding: 0 10px;
-        border-bottom: 1px solid #3c4043;
-        pointer-events: auto; /* Ensure clickable */
+        box-sizing: border-box;
     `;
 
     const leftControls = document.createElement('div');
@@ -195,51 +221,106 @@ function injectTitleBar() {
         return btn;
     };
 
-    // Left Controls: Back, Forward, Reload, Home, Settings
-    createBtn('←', 'nav-back', undefined, leftControls);
-    createBtn('→', 'nav-forward', undefined, leftControls);
-    createBtn('↻', 'nav-reload', undefined, leftControls);
-    createBtn('🏠', 'nav-home', undefined, leftControls);
-    createBtn('⚙️', () => showSettingsModal(), undefined, leftControls);
+    // Determine Window Controls Position
+    let controlsPosition = 'right'; // Default
+    if (currentConfig && currentConfig.windowControlsPosition) {
+        if (currentConfig.windowControlsPosition === 'left') {
+            controlsPosition = 'left';
+        } else if (currentConfig.windowControlsPosition === 'auto') {
+            if (process.platform === 'darwin') {
+                controlsPosition = 'left';
+            }
+        }
+    }
 
-    // URL Display
+    // Helper to create window controls
+    const createWindowControls = (container, isLeft) => {
+        if (isLeft) {
+            // macOS style: Close, Minimize, Maximize
+            createBtn('✕', 'window-close', '#e81123', container);
+            createBtn('−', 'window-minimize', undefined, container);
+            createBtn('□', 'window-maximize', undefined, container);
+        } else {
+            // Windows/Linux style: Minimize, Maximize, Close
+            createBtn('−', 'window-minimize', undefined, container);
+            createBtn('□', 'window-maximize', undefined, container);
+            createBtn('✕', 'window-close', '#e81123', container);
+        }
+    };
+
+    // Helper to create nav controls
+    const createNavControls = (container) => {
+        createBtn('←', 'nav-back', undefined, container);
+        createBtn('→', 'nav-forward', undefined, container);
+        createBtn('↻', 'nav-reload', undefined, container);
+        createBtn('🏠', 'nav-home', undefined, container);
+        createBtn('⚙️', () => showSettingsModal(), undefined, container);
+    };
+
+    // Helper to create extra controls (Key)
+    const createExtraControls = (container) => {
+        const keyBtn = createBtn('🔑', () => showCookieModal(), 'rgba(255,255,0,0.2)', container);
+        keyBtn.id = 'login-key-btn';
+    };
+
+    if (controlsPosition === 'left') {
+        // Left: [WindowControls] [NavControls] ... [ExtraControls]
+        createWindowControls(leftControls, true);
+        // Add a small spacer or separator if needed
+        const spacer = document.createElement('div');
+        spacer.style.width = '10px';
+        leftControls.appendChild(spacer);
+        createNavControls(leftControls);
+        
+        createExtraControls(rightControls);
+    } else {
+        // Right: [NavControls] ... [ExtraControls] [WindowControls]
+        createNavControls(leftControls);
+        
+        createExtraControls(rightControls);
+        // Add a small spacer
+        const spacer = document.createElement('div');
+        spacer.style.width = '10px';
+        rightControls.appendChild(spacer);
+        createWindowControls(rightControls, false);
+    }
+
+    // URL Display (Row 2)
     const urlDisplay = document.createElement('div');
     urlDisplay.id = 'url-display';
     urlDisplay.style.cssText = `
-        flex-grow: 1;
-        text-align: center;
+        width: 100%;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #171717; /* Slightly darker background */
         color: #9aa0a6;
         font-family: sans-serif;
         font-size: 12px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        margin: 0 20px;
         opacity: 0; /* Hidden by default */
         transition: opacity 0.2s;
         pointer-events: auto;
         -webkit-app-region: no-drag;
         -webkit-user-select: text;
         cursor: text;
+        border-top: 1px solid #3c4043;
     `;
-    titleBar.appendChild(urlDisplay);
-
-    // Right Controls: Key, Min, Max, Close
-    const keyBtn = createBtn('🔑', () => showCookieModal(), 'rgba(255,255,0,0.2)', rightControls);
-    keyBtn.id = 'login-key-btn';
     
-    createBtn('−', 'window-minimize', undefined, rightControls);
-    createBtn('□', 'window-maximize', undefined, rightControls);
-    createBtn('✕', 'window-close', '#e81123', rightControls);
-
-    titleBar.appendChild(leftControls);
-    titleBar.appendChild(urlDisplay); // Insert between controls
-    titleBar.appendChild(rightControls);
+    // Assemble
+    buttonRow.appendChild(leftControls);
+    buttonRow.appendChild(rightControls);
+    
+    titleBar.appendChild(buttonRow);
+    titleBar.appendChild(urlDisplay);
 
     // Use documentElement to avoid body overwrites if possible, or force body prepend
     if (document.body) {
         document.body.prepend(titleBar);
-        document.body.style.paddingTop = '32px';
+        document.body.style.paddingTop = '60px'; // Adjusted for new height
     } else {
         console.error('Document body not found!');
     }
@@ -442,6 +523,43 @@ async function showSettingsModal() {
     langContainer.appendChild(langLabel);
     langContainer.appendChild(langSelect);
 
+    // Window Controls Position Selector
+    const posContainer = document.createElement('div');
+    posContainer.style.marginBottom = '20px';
+    
+    const posLabel = document.createElement('label');
+    posLabel.textContent = t('window_controls_position');
+    posLabel.style.display = 'block';
+    posLabel.style.marginBottom = '8px';
+
+    const posSelect = document.createElement('select');
+    posSelect.style.cssText = `
+        width: 100%;
+        padding: 8px;
+        background: #303134;
+        border: 1px solid #5f6368;
+        color: #fff;
+        border-radius: 4px;
+        box-sizing: border-box;
+    `;
+    
+    const positions = [
+        { code: 'auto', label: t('position_auto') },
+        { code: 'left', label: t('position_left') },
+        { code: 'right', label: t('position_right') }
+    ];
+
+    positions.forEach(pos => {
+        const option = document.createElement('option');
+        option.value = pos.code;
+        option.textContent = pos.label;
+        if ((config.windowControlsPosition || 'auto') === pos.code) option.selected = true;
+        posSelect.appendChild(option);
+    });
+
+    posContainer.appendChild(posLabel);
+    posContainer.appendChild(posSelect);
+
     // Auto Clear Cookies Toggle
     const toggleContainer = document.createElement('div');
     toggleContainer.style.marginBottom = '20px';
@@ -563,6 +681,7 @@ async function showSettingsModal() {
     saveBtn.onclick = () => {
         const newConfig = {
             language: langSelect.value,
+            windowControlsPosition: posSelect.value,
             autoClearCookies: toggleInput.checked,
             showUrlInTitleBar: urlToggleInput.checked,
             customHomePage: homeInput.value.trim()
@@ -570,7 +689,7 @@ async function showSettingsModal() {
         ipcRenderer.send('save-settings', newConfig);
         modal.remove();
         // Reload to apply language changes
-        if (newConfig.language !== config.language) {
+        if (newConfig.language !== config.language || newConfig.windowControlsPosition !== config.windowControlsPosition) {
              ipcRenderer.send('nav-reload');
         }
     };
@@ -580,6 +699,7 @@ async function showSettingsModal() {
 
     content.appendChild(title);
     content.appendChild(langContainer);
+    content.appendChild(posContainer);
     content.appendChild(toggleContainer);
     content.appendChild(urlToggleContainer);
     content.appendChild(homeContainer);

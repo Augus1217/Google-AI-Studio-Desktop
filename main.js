@@ -9,7 +9,8 @@ const defaultConfig = {
     autoClearCookies: false,
     customHomePage: 'https://aistudio.google.com/prompts/new_chat',
     showUrlInTitleBar: false,
-    language: 'auto'
+    language: 'auto',
+    windowControlsPosition: 'auto' // 'auto', 'left', 'right'
 };
 
 function loadConfig() {
