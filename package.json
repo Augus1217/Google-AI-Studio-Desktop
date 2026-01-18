@@ -18,7 +18,9 @@
       "target": [
         "AppImage",
         "deb",
-        "snap"
+        "snap",
+        "rpm",
+        "zip"
       ],
       "category": "Development"
     },
@@ -54,6 +56,12 @@
         },
         {
           "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
           "arch": [
             "x64"
           ]
