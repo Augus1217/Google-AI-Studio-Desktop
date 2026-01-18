@@ -34,7 +34,17 @@ const translations = {
         'window_controls_position': 'Window Controls Position',
         'position_auto': 'Auto (OS Default)',
         'position_left': 'Left (macOS style)',
-        'position_right': 'Right (Windows/Linux style)'
+        'position_right': 'Right (Windows/Linux style)',
+        'star_repo': 'If you found it useful, give our repo a star please! ⭐',
+        'enable_devtools': 'Enable Developer Tools',
+        'devtools_mode': 'DevTools Mode',
+        'mode_detach': 'Detached (Separate Window)',
+        'mode_right': 'Embedded (Right)',
+        'mode_bottom': 'Embedded (Bottom)',
+        'about': 'About',
+        'about_desc': 'An electron-based desktop wrapper for Google AI Studio.',
+        'repo_link': 'GitHub Repository',
+        'version': 'Version'
     },
     'zh-TW': {
         'settings': '設定',
@@ -57,7 +67,17 @@ const translations = {
         'window_controls_position': '視窗按鈕位置',
         'position_auto': '自動 (依作業系統)',
         'position_left': '左側 (macOS 風格)',
-        'position_right': '右側 (Windows/Linux 風格)'
+        'position_right': '右側 (Windows/Linux 風格)',
+        'star_repo': '如果您覺得好用，請幫我們的專案按個星星！ ⭐',
+        'enable_devtools': '啟用開發者工具',
+        'devtools_mode': '開發者工具模式',
+        'mode_detach': '獨立視窗',
+        'mode_right': '嵌入視窗 (右側)',
+        'mode_bottom': '嵌入視窗 (底部)',
+        'about': '關於',
+        'about_desc': 'Google AI Studio 的 Electron 桌面版封裝。',
+        'repo_link': 'GitHub 儲存庫',
+        'version': '版本'
     },
     'zh-CN': {
         'settings': '设置',
@@ -80,7 +100,17 @@ const translations = {
         'window_controls_position': '窗口按钮位置',
         'position_auto': '自动 (依操作系统)',
         'position_left': '左侧 (macOS 风格)',
-        'position_right': '右侧 (Windows/Linux 风格)'
+        'position_right': '右侧 (Windows/Linux 风格)',
+        'star_repo': '如果您觉得好用，请帮我们的专案按个星星！ ⭐',
+        'enable_devtools': '启用开发者工具',
+        'devtools_mode': '开发者工具模式',
+        'mode_detach': '独立窗口',
+        'mode_right': '嵌入窗口 (右侧)',
+        'mode_bottom': '嵌入窗口 (底部)',
+        'about': '关于',
+        'about_desc': 'Google AI Studio 的 Electron 桌面版封装。',
+        'repo_link': 'GitHub 仓库',
+        'version': '版本'
     },
     'ja': {
         'settings': '設定',
@@ -103,7 +133,17 @@ const translations = {
         'window_controls_position': 'ウィンドウボタンの位置',
         'position_auto': '自動 (OSデフォルト)',
         'position_left': '左側 (macOSスタイル)',
-        'position_right': '右側 (Windows/Linuxスタイル)'
+        'position_right': '右側 (Windows/Linuxスタイル)',
+        'star_repo': '役に立った場合は、リポジトリにスターをつけてください！ ⭐',
+        'enable_devtools': '開発者ツールを有効にする',
+        'devtools_mode': '開発者ツールモード',
+        'mode_detach': '別ウィンドウ',
+        'mode_right': '埋め込み (右側)',
+        'mode_bottom': '埋め込み (下側)',
+        'about': 'アプリについて',
+        'about_desc': 'Google AI Studio の Electron デスクトップラッパー。',
+        'repo_link': 'GitHub リポジトリ',
+        'version': 'バージョン'
     }
 };
 
@@ -141,6 +181,42 @@ function injectTitleBar() {
 
     console.log('Injecting title bar...');
 
+    // Add Styles for animations
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes bounce-x {
+            0% { transform: translateX(0); opacity: 0.5; }
+            50% { transform: translateX(10px); opacity: 1; }
+            100% { transform: translateX(0); opacity: 0.5; }
+        }
+        @keyframes slide-wave {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(200%); }
+        }
+        .loading-dot {
+            width: 6px;
+            height: 6px;
+            background-color: #8ab4f8; /* Google Blue */
+            border-radius: 50%;
+            margin-left: 8px;
+            display: none;
+            animation: bounce-x 1s infinite ease-in-out;
+        }
+        .completion-wave {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(138, 180, 248, 0.3), transparent);
+            pointer-events: none;
+            z-index: 100;
+            opacity: 0;
+            transform: translateX(-100%);
+        }
+    `;
+    document.head.appendChild(style);
+
     const titleBar = document.createElement('div');
     titleBar.id = 'custom-title-bar';
     titleBar.style.cssText = `
@@ -148,47 +224,44 @@ function injectTitleBar() {
         top: 0;
         left: 0;
         width: 100%;
-        height: 60px; /* Increased height for two rows */
-        background: #202124;
-        display: flex;
-        flex-direction: column; /* Stack vertically */
-        z-index: 999999; /* Higher z-index */
-        box-sizing: border-box;
-        border-bottom: 1px solid #3c4043;
-        pointer-events: auto; /* Ensure clickable */
-    `;
-
-    // Row 1: Buttons
-    const buttonRow = document.createElement('div');
-    buttonRow.style.cssText = `
-        width: 100%;
         height: 32px;
+        background: #202124;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        -webkit-app-region: drag;
-        padding: 0 10px;
+        /* -webkit-app-region: drag; REMOVED: Native frame is active, no need for drag region */
+        z-index: 999999; /* Higher z-index */
         box-sizing: border-box;
+        padding: 0 10px;
+        border-bottom: 1px solid #3c4043;
+        pointer-events: auto; /* Ensure clickable */
+        overflow: hidden; /* Clip the wave animation */
     `;
+
+    const completionWave = document.createElement('div');
+    completionWave.className = 'completion-wave';
+    titleBar.appendChild(completionWave);
 
     const leftControls = document.createElement('div');
     leftControls.style.cssText = `
         display: flex;
         align-items: center;
-        -webkit-app-region: no-drag;
+        /* -webkit-app-region: no-drag; */
+        z-index: 101; /* Above wave */
     `;
 
     const rightControls = document.createElement('div');
     rightControls.style.cssText = `
         display: flex;
         align-items: center;
-        -webkit-app-region: no-drag;
+        /* -webkit-app-region: no-drag; */
+        z-index: 101; /* Above wave */
     `;
 
     const buttonStyle = `
-        -webkit-app-region: no-drag;
-        width: 24px;
-        height: 24px;
+        /* -webkit-app-region: no-drag; */
+        min-width: 32px; /* Enforce min-width */
+        height: 28px;
         border: none;
         background: transparent;
         color: #e8eaed;
@@ -197,9 +270,10 @@ function injectTitleBar() {
         align-items: center;
         cursor: pointer;
         font-family: sans-serif;
-        font-size: 14px;
+        font-size: 16px;
         margin: 0 2px;
         border-radius: 4px;
+        padding: 0 4px;
     `;
 
     const createBtn = (text, action, hoverColor = 'rgba(255,255,255,0.1)', container = rightControls) => {
@@ -221,106 +295,93 @@ function injectTitleBar() {
         return btn;
     };
 
-    // Determine Window Controls Position
-    let controlsPosition = 'right'; // Default
-    if (currentConfig && currentConfig.windowControlsPosition) {
-        if (currentConfig.windowControlsPosition === 'left') {
-            controlsPosition = 'left';
-        } else if (currentConfig.windowControlsPosition === 'auto') {
-            if (process.platform === 'darwin') {
-                controlsPosition = 'left';
-            }
-        }
-    }
+    // Helper for SVG icons
+    const createSvgIcon = (pathData) => {
+       const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+       svg.setAttribute('viewBox', '0 0 24 24');
+       svg.setAttribute('width', '18');
+       svg.setAttribute('height', '18');
+       svg.setAttribute('fill', 'currentColor');
+       const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+       path.setAttribute('d', pathData);
+       svg.appendChild(path);
+       return svg;
+    };
 
-    // Helper to create window controls
-    const createWindowControls = (container, isLeft) => {
-        if (isLeft) {
-            // macOS style: Close, Minimize, Maximize
-            createBtn('✕', 'window-close', '#e81123', container);
-            createBtn('−', 'window-minimize', undefined, container);
-            createBtn('□', 'window-maximize', undefined, container);
+    // Update createBtn to handle Element content
+    const createBtnWithIcon = (iconOrText, action, hoverColor = 'rgba(255,255,255,0.1)', container = rightControls) => {
+        const btn = document.createElement('button');
+        btn.style.cssText = buttonStyle;
+        
+        if (typeof iconOrText === 'string') {
+             btn.textContent = iconOrText;
+        } else if (iconOrText instanceof Element) {
+             btn.appendChild(iconOrText);
+        }
+
+        btn.onmouseenter = () => btn.style.background = hoverColor;
+        btn.onmouseleave = () => btn.style.background = 'transparent';
+        
+        if (typeof action === 'function') {
+            btn.onclick = action;
         } else {
-            // Windows/Linux style: Minimize, Maximize, Close
-            createBtn('−', 'window-minimize', undefined, container);
-            createBtn('□', 'window-maximize', undefined, container);
-            createBtn('✕', 'window-close', '#e81123', container);
+            btn.onclick = () => {
+                console.log('Button clicked:', action);
+                ipcRenderer.send(action);
+            };
         }
+        container.appendChild(btn);
+        return btn;
     };
 
-    // Helper to create nav controls
-    const createNavControls = (container) => {
-        createBtn('←', 'nav-back', undefined, container);
-        createBtn('→', 'nav-forward', undefined, container);
-        createBtn('↻', 'nav-reload', undefined, container);
-        createBtn('🏠', 'nav-home', undefined, container);
-        createBtn('⚙️', () => showSettingsModal(), undefined, container);
-    };
+    // Left: Back, Forward, Reload (Material Icons)
+    createBtnWithIcon(createSvgIcon('M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z'), 'nav-back', undefined, leftControls); // Arrow Back
+    createBtnWithIcon(createSvgIcon('M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z'), 'nav-forward', undefined, leftControls); // Arrow Forward
+    createBtnWithIcon(createSvgIcon('M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z'), 'nav-reload', undefined, leftControls); // Refresh
 
-    // Helper to create extra controls (Key)
-    const createExtraControls = (container) => {
-        const keyBtn = createBtn('🔑', () => showCookieModal(), 'rgba(255,255,0,0.2)', container);
-        keyBtn.id = 'login-key-btn';
-    };
+    // Loading Indicator
+    const loadingDot = document.createElement('div');
+    loadingDot.className = 'loading-dot';
+    leftControls.appendChild(loadingDot);
 
-    if (controlsPosition === 'left') {
-        // Left: [WindowControls] [NavControls] ... [ExtraControls]
-        createWindowControls(leftControls, true);
-        // Add a small spacer or separator if needed
-        const spacer = document.createElement('div');
-        spacer.style.width = '10px';
-        leftControls.appendChild(spacer);
-        createNavControls(leftControls);
-        
-        createExtraControls(rightControls);
-    } else {
-        // Right: [NavControls] ... [ExtraControls] [WindowControls]
-        createNavControls(leftControls);
-        
-        createExtraControls(rightControls);
-        // Add a small spacer
-        const spacer = document.createElement('div');
-        spacer.style.width = '10px';
-        rightControls.appendChild(spacer);
-        createWindowControls(rightControls, false);
-    }
+    // Right: Home, About, Settings, Key
+    createBtnWithIcon(createSvgIcon('M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z'), 'nav-home', undefined, rightControls); // Home
+    createBtnWithIcon(createSvgIcon('M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z'), () => showAboutModal(), undefined, rightControls); // About
+    createBtnWithIcon(createSvgIcon('M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59-.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.04.24.24.41.48.41h-3.84c.24 0 .43-.17.47-.41l.36-2.54c.59-.24 1.13-.57 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.08-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z'), () => showSettingsModal(), undefined, rightControls); // Settings
+    const keyBtn = createBtnWithIcon(createSvgIcon('M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z'), () => showCookieModal(), 'rgba(255,255,0,0.2)', rightControls);
+    keyBtn.id = 'login-key-btn';
 
-    // URL Display (Row 2)
+    // URL Display
     const urlDisplay = document.createElement('div');
     urlDisplay.id = 'url-display';
     urlDisplay.style.cssText = `
-        width: 100%;
-        height: 28px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #171717; /* Slightly darker background */
+        flex-grow: 1;
+        text-align: center;
         color: #9aa0a6;
         font-family: sans-serif;
         font-size: 12px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        margin: 0 20px;
         opacity: 0; /* Hidden by default */
         transition: opacity 0.2s;
         pointer-events: auto;
         -webkit-app-region: no-drag;
         -webkit-user-select: text;
         cursor: text;
-        border-top: 1px solid #3c4043;
+        z-index: 101; /* Above wave */
     `;
     
     // Assemble
-    buttonRow.appendChild(leftControls);
-    buttonRow.appendChild(rightControls);
-    
-    titleBar.appendChild(buttonRow);
+    titleBar.appendChild(leftControls);
     titleBar.appendChild(urlDisplay);
+    titleBar.appendChild(rightControls);
 
     // Use documentElement to avoid body overwrites if possible, or force body prepend
     if (document.body) {
         document.body.prepend(titleBar);
-        document.body.style.paddingTop = '60px'; // Adjusted for new height
+        document.body.style.paddingTop = '32px';
     } else {
         console.error('Document body not found!');
     }
@@ -332,6 +393,38 @@ function injectTitleBar() {
             urlDisplay.textContent = window.location.href;
         }
     });
+
+    // Loading State Listeners
+    ipcRenderer.on('loading-start', () => {
+        loadingDot.style.display = 'block';
+        
+        // Reset completion wave
+        completionWave.style.opacity = '0';
+        completionWave.style.animation = 'none';
+        
+        const svg = leftControls.querySelector('button:nth-child(3) svg');
+        if (svg) svg.style.animation = 'spin 1s linear infinite';
+    });
+
+    ipcRenderer.on('loading-stop', () => {
+        loadingDot.style.display = 'none';
+
+        // Trigger completion wave
+        completionWave.style.opacity = '1';
+        completionWave.style.animation = 'slide-wave 0.6s ease-out forwards';
+
+        const svg = leftControls.querySelector('button:nth-child(3) svg');
+        if (svg) svg.style.animation = 'none';
+    });
+
+    // Add spin animation style for reload button
+    const spinStyle = document.createElement('style');
+    spinStyle.textContent = `
+        @keyframes spin { 
+            100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } 
+        }
+    `;
+    document.head.appendChild(spinStyle);
 }
 
 // Listen for URL updates
@@ -445,6 +538,20 @@ ipcRenderer.on('settings-updated', (event, config) => {
     }
 });
 
+// Sync DevTools state (e.g., when closed via 'X')
+ipcRenderer.on('sync-devtools-state', (event, isOpen) => {
+    const toggle = document.getElementById('settings-devtools-toggle');
+    const modeContainer = document.getElementById('settings-devtools-mode-container');
+    
+    if (toggle) {
+        toggle.checked = isOpen;
+    }
+    
+    if (modeContainer) {
+        modeContainer.style.display = isOpen ? 'block' : 'none';
+    }
+});
+
 async function showSettingsModal() {
     if (document.getElementById('settings-modal')) return;
 
@@ -523,43 +630,6 @@ async function showSettingsModal() {
     langContainer.appendChild(langLabel);
     langContainer.appendChild(langSelect);
 
-    // Window Controls Position Selector
-    const posContainer = document.createElement('div');
-    posContainer.style.marginBottom = '20px';
-    
-    const posLabel = document.createElement('label');
-    posLabel.textContent = t('window_controls_position');
-    posLabel.style.display = 'block';
-    posLabel.style.marginBottom = '8px';
-
-    const posSelect = document.createElement('select');
-    posSelect.style.cssText = `
-        width: 100%;
-        padding: 8px;
-        background: #303134;
-        border: 1px solid #5f6368;
-        color: #fff;
-        border-radius: 4px;
-        box-sizing: border-box;
-    `;
-    
-    const positions = [
-        { code: 'auto', label: t('position_auto') },
-        { code: 'left', label: t('position_left') },
-        { code: 'right', label: t('position_right') }
-    ];
-
-    positions.forEach(pos => {
-        const option = document.createElement('option');
-        option.value = pos.code;
-        option.textContent = pos.label;
-        if ((config.windowControlsPosition || 'auto') === pos.code) option.selected = true;
-        posSelect.appendChild(option);
-    });
-
-    posContainer.appendChild(posLabel);
-    posContainer.appendChild(posSelect);
-
     // Auto Clear Cookies Toggle
     const toggleContainer = document.createElement('div');
     toggleContainer.style.marginBottom = '20px';
@@ -593,6 +663,74 @@ async function showSettingsModal() {
     
     urlToggleContainer.appendChild(urlToggleLabel);
     urlToggleContainer.appendChild(urlToggleInput);
+
+    // Enable DevTools Toggle
+    const devToolsToggleContainer = document.createElement('div');
+    devToolsToggleContainer.style.marginBottom = '20px';
+    devToolsToggleContainer.style.display = 'flex';
+    devToolsToggleContainer.style.alignItems = 'center';
+
+    const devToolsToggleLabel = document.createElement('label');
+    devToolsToggleLabel.textContent = t('enable_devtools');
+    devToolsToggleLabel.style.flexGrow = '1';
+
+    const devToolsToggleInput = document.createElement('input');
+    devToolsToggleInput.type = 'checkbox';
+    devToolsToggleInput.id = 'settings-devtools-toggle'; // ID for sync
+    devToolsToggleInput.checked = config.enableDevTools;
+    
+    devToolsToggleContainer.appendChild(devToolsToggleLabel);
+    devToolsToggleContainer.appendChild(devToolsToggleInput);
+
+    // DevTools Mode Selector (Hidden if disabled)
+    const modeContainer = document.createElement('div');
+    modeContainer.id = 'settings-devtools-mode-container'; // ID for sync
+    modeContainer.style.marginBottom = '20px';
+    modeContainer.style.display = config.enableDevTools ? 'block' : 'none'; // Initial state
+
+    const modeLabel = document.createElement('label');
+    modeLabel.textContent = t('devtools_mode');
+    modeLabel.style.display = 'block';
+    modeLabel.style.marginBottom = '8px';
+
+    const modeSelect = document.createElement('select');
+    modeSelect.style.cssText = `
+        width: 100%;
+        padding: 8px;
+        background: #303134;
+        border: 1px solid #5f6368;
+        color: #fff;
+        border-radius: 4px;
+        box-sizing: border-box;
+    `;
+
+    const modes = [
+        { code: 'detach', label: t('mode_detach') },
+        { code: 'right', label: t('mode_right') },
+        { code: 'bottom', label: t('mode_bottom') }
+    ];
+
+    modes.forEach(m => {
+        const option = document.createElement('option');
+        option.value = m.code;
+        option.textContent = m.label;
+        if ((config.devToolsMode || 'detach') === m.code) option.selected = true;
+        modeSelect.appendChild(option);
+    });
+
+    modeContainer.appendChild(modeLabel);
+    modeContainer.appendChild(modeSelect);
+
+    // Immediate Toggle Logic
+    const updateDevToolsState = () => {
+        const isOpen = devToolsToggleInput.checked;
+        const mode = modeSelect.value;
+        modeContainer.style.display = isOpen ? 'block' : 'none';
+        ipcRenderer.send('set-devtools-state', { open: isOpen, mode: mode });
+    };
+    
+    devToolsToggleInput.onchange = updateDevToolsState;
+    modeSelect.onchange = updateDevToolsState;
 
     // Custom Home Page Input
     const homeContainer = document.createElement('div');
@@ -681,15 +819,16 @@ async function showSettingsModal() {
     saveBtn.onclick = () => {
         const newConfig = {
             language: langSelect.value,
-            windowControlsPosition: posSelect.value,
             autoClearCookies: toggleInput.checked,
             showUrlInTitleBar: urlToggleInput.checked,
+            enableDevTools: devToolsToggleInput.checked, 
+            devToolsMode: modeSelect.value, // Save DevTools mode
             customHomePage: homeInput.value.trim()
         };
         ipcRenderer.send('save-settings', newConfig);
         modal.remove();
         // Reload to apply language changes
-        if (newConfig.language !== config.language || newConfig.windowControlsPosition !== config.windowControlsPosition) {
+        if (newConfig.language !== config.language) {
              ipcRenderer.send('nav-reload');
         }
     };
@@ -699,15 +838,164 @@ async function showSettingsModal() {
 
     content.appendChild(title);
     content.appendChild(langContainer);
-    content.appendChild(posContainer);
     content.appendChild(toggleContainer);
     content.appendChild(urlToggleContainer);
+    content.appendChild(devToolsToggleContainer); 
+    content.appendChild(modeContainer); // Add Mode Selector
     content.appendChild(homeContainer);
     content.appendChild(resetContainer);
     content.appendChild(btnContainer);
     modal.appendChild(content);
 
     document.body.appendChild(modal);
+}
+
+async function showAboutModal() {
+    if (document.getElementById('about-modal')) return;
+
+    const config = await ipcRenderer.invoke('get-settings');
+    
+    // Translation Helper (Scoped)
+    const t = (key) => {
+        let lang = config.language;
+        if (lang === 'auto') {
+            const sysLocale = navigator.language;
+            if (sysLocale.startsWith('zh-TW') || sysLocale.startsWith('zh-HK')) lang = 'zh-TW';
+            else if (sysLocale.startsWith('zh')) lang = 'zh-CN';
+            else if (sysLocale.startsWith('ja')) lang = 'ja';
+            else lang = 'en';
+        }
+        return (translations[lang] && translations[lang][key]) || translations['en'][key] || key;
+    };
+
+    const modal = document.createElement('div');
+    modal.id = 'about-modal';
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+        backdrop-filter: blur(5px);
+    `;
+
+    const content = document.createElement('div');
+    content.style.cssText = `
+        background: #202124;
+        padding: 30px;
+        border-radius: 8px;
+        width: 400px;
+        color: #e8eaed;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        font-family: 'Google Sans', sans-serif;
+        text-align: center;
+        border: 1px solid #5f6368;
+    `;
+
+    // Title
+    const title = document.createElement('h2');
+    title.textContent = t('about');
+    title.style.marginTop = '0';
+    title.style.marginBottom = '20px';
+    title.style.color = '#e8eaed';
+
+    // Description
+    const desc = document.createElement('p');
+    desc.textContent = t('about_desc');
+    desc.style.color = '#bdc1c6';
+    desc.style.lineHeight = '1.6';
+    desc.style.marginBottom = '20px';
+
+    // Version
+    const version = document.createElement('p');
+    version.textContent = `${t('version')}: 1.0.0`;
+    version.style.color = '#9aa0a6';
+    version.style.fontSize = '0.9em';
+    version.style.marginBottom = '30px';
+
+    // Repo Link
+    const repoLink = document.createElement('a');
+    repoLink.href = '#';
+    repoLink.textContent = t('repo_link');
+    repoLink.style.cssText = `
+        display: block;
+        color: #8ab4f8;
+        text-decoration: none;
+        margin-bottom: 20px;
+        font-weight: 500;
+    `;
+    repoLink.onclick = (e) => {
+        e.preventDefault();
+        ipcRenderer.send('open-external-link', 'https://github.com/Augus1217/Google-AI-Studio-Desktop');
+    };
+
+    // Star Repo (Ad)
+    const starContainer = document.createElement('div');
+    starContainer.style.marginBottom = '20px';
+    starContainer.style.padding = '15px';
+    starContainer.style.background = 'rgba(251, 188, 4, 0.1)';
+    starContainer.style.borderRadius = '8px';
+    starContainer.style.border = '1px solid rgba(251, 188, 4, 0.3)';
+
+    const starLink = document.createElement('a');
+    starLink.href = '#';
+    starLink.textContent = t('star_repo');
+    starLink.style.cssText = `
+        color: #fbbc04; /* Google Yellow */
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: bold;
+        transition: opacity 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    `;
+    starLink.onmouseenter = () => starLink.style.opacity = '0.8';
+    starLink.onmouseleave = () => starLink.style.opacity = '1';
+    starLink.onclick = (e) => {
+        e.preventDefault();
+        ipcRenderer.send('open-external-link', 'https://github.com/Augus1217/Google-AI-Studio-Desktop');
+    };
+    
+    starContainer.appendChild(starLink);
+
+    // Close Button
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = 'Close';
+    closeBtn.style.cssText = `
+        padding: 8px 24px;
+        background: #8ab4f8;
+        border: none;
+        color: #202124;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background 0.2s;
+    `;
+    closeBtn.onmouseenter = () => closeBtn.style.background = '#aecbfa';
+    closeBtn.onmouseleave = () => closeBtn.style.background = '#8ab4f8';
+    closeBtn.onclick = () => modal.remove();
+
+    content.appendChild(title);
+    content.appendChild(desc);
+    content.appendChild(repoLink);
+    content.appendChild(version);
+    content.appendChild(starContainer);
+    content.appendChild(closeBtn);
+
+    modal.appendChild(content);
+    document.body.appendChild(modal);
+
+    // Close on click outside
+    modal.onclick = (e) => {
+        if (e.target === modal) modal.remove();
+    };
 }
 
 function showCookieModal() {
