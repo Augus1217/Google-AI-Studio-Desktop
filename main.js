@@ -117,6 +117,188 @@ app.commandLine.appendSwitch('disable-blink-features', 'AutomationControlled');
 app.commandLine.appendSwitch('disable-features', 'CrossSiteDocumentBlockingIfIsolating');
 app.commandLine.appendSwitch('disable-site-isolation-trials');
 
+
+// IPC Handlers (Moved outside to global scope)
+ipcMain.on('window-minimize', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win) win.minimize();
+});
+
+ipcMain.on('window-maximize', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win) {
+        if (win.isMaximized()) {
+            win.unmaximize();
+        } else {
+            win.maximize();
+        }
+    }
+});
+
+ipcMain.on('window-close', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win) win.close();
+});
+
+ipcMain.on('reset-app', async () => {
+    console.log('Resetting app data...');
+    if (fs.existsSync(configPath)) {
+        try {
+            fs.unlinkSync(configPath);
+            console.log('Config file deleted.');
+        } catch (err) {
+            console.error('Failed to delete config file:', err);
+        }
+    }
+    try {
+        console.log('Clearing storage data...');
+        await session.defaultSession.clearStorageData();
+        console.log('Storage data cleared.');
+    } catch (err) {
+        console.error('Failed to clear storage data:', err);
+    }
+    console.log('Relaunching app...');
+    if (!app.isPackaged) {
+        app.relaunch({ args: process.argv.slice(1) });
+    } else {
+        app.relaunch();
+    }
+    app.exit(0);
+});
+
+ipcMain.on('nav-back', (event) => {
+    if (event.sender.canGoBack()) event.sender.goBack();
+});
+
+ipcMain.on('nav-forward', (event) => {
+    if (event.sender.canGoForward()) event.sender.goForward();
+});
+
+ipcMain.on('nav-reload', (event) => {
+    event.sender.reload();
+});
+
+ipcMain.on('nav-home', (event) => {
+    const currentConfig = loadConfig();
+    event.sender.loadURL(currentConfig.customHomePage || defaultConfig.customHomePage);
+});
+
+ipcMain.handle('get-settings', () => {
+    return loadConfig();
+});
+
+ipcMain.on('save-settings', (event, newConfig) => {
+    saveConfig(newConfig);
+    console.log('Settings saved. DevTools:', newConfig.enableDevTools);
+    if (newConfig.enableDevTools) {
+             event.sender.closeDevTools();
+             setTimeout(() => {
+                event.sender.openDevTools({ mode: newConfig.devToolsMode || 'detach' });
+             }, 100);
+    } else {
+             event.sender.closeDevTools();
+    }
+    event.sender.send('settings-updated', newConfig);
+});
+
+ipcMain.on('set-devtools-state', (event, { open, mode }) => {
+    const config = loadConfig();
+    config.enableDevTools = open;
+    config.devToolsMode = mode;
+    saveConfig(config);
+    if (open) {
+             event.sender.closeDevTools();
+             setTimeout(() => {
+                event.sender.openDevTools({ mode: mode || 'detach' });
+             }, 100);
+    } else {
+             event.sender.closeDevTools();
+    }
+});
+
+ipcMain.on('open-external-link', (event, url) => {
+    shell.openExternal(url);
+});
+
+ipcMain.on('open-external-login', async () => {
+    console.log('Received open-external-login request');
+    const url = 'https://aistudio.google.com/prompts/new_chat';
+    const browsers = [];
+    if (process.platform === 'linux') {
+        browsers.push('google-chrome', 'google-chrome-stable', 'microsoft-edge', 'microsoft-edge-stable', 'chromium', 'chromium-browser', 'brave-browser');
+    } else if (process.platform === 'darwin') {
+        browsers.push('Google Chrome', 'Microsoft Edge', 'Brave Browser', 'Chromium');
+    } else if (process.platform === 'win32') {
+        browsers.push('chrome', 'msedge', 'brave');
+    }
+    let opened = false;
+    for (const browser of browsers) {
+        try {
+            if (process.platform === 'linux') {
+                await new Promise((resolve, reject) => {
+                    exec(`which ${browser}`, (err) => { if (err) reject(err); else resolve(); });
+                });
+                const child = spawn(browser, [url], { detached: true, stdio: 'ignore' });
+                child.unref();
+                opened = true;
+                break;
+            } else if (process.platform === 'darwin') {
+                await new Promise((resolve, reject) => {
+                    exec(`open -a "${browser}" "${url}"`, (err) => { if (err) reject(err); else resolve(); });
+                });
+                opened = true;
+                break;
+            } else if (process.platform === 'win32') {
+                await new Promise((resolve, reject) => {
+                    exec(`start ${browser} "${url}"`, (err) => { if (err) reject(err); else resolve(); });
+                });
+                opened = true;
+                break;
+            }
+        } catch (e) { }
+    }
+    if (!opened) {
+        await shell.openExternal(url);
+    }
+});
+
+ipcMain.on('set-session-cookie', async (event, rawCookieValue) => {
+    try {
+        await session.defaultSession.clearStorageData({ storages: ['cookies'] });
+        const setCookie = async (name, value) => {
+            const accessibleCookies = ['SAPISID', 'APISID', '__Secure-1PAPISID', '__Secure-3PAPISID', 'SIDCC', '__Secure-1PSIDCC', '__Secure-3PSIDCC'];
+            const isAccessible = accessibleCookies.includes(name.trim()) || name.trim().startsWith('_ga');
+            const expirationDate = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 365);
+            const cookie = {
+                url: 'https://google.com',
+                name: name.trim(),
+                value: value.trim(),
+                domain: '.google.com',
+                path: '/',
+                secure: true,
+                httpOnly: !isAccessible,
+                sameSite: 'no_restriction',
+                expirationDate: expirationDate
+            };
+            try { await session.defaultSession.cookies.set(cookie); } catch (e) { console.error(e); }
+        };
+        let cleanCookieValue = rawCookieValue.trim();
+        if (cleanCookieValue.toLowerCase().startsWith('cookie:')) cleanCookieValue = cleanCookieValue.substring(7).trim();
+        if (cleanCookieValue.includes('=')) {
+            const cookies = cleanCookieValue.split(';');
+            for (const c of cookies) {
+                const parts = c.split('=');
+                if (parts.length >= 2) await setCookie(parts[0], parts.slice(1).join('='));
+            }
+        } else {
+            await setCookie('__Secure-1PSID', rawCookieValue);
+        }
+        event.sender.loadURL('https://aistudio.google.com/prompts/new_chat?model=gemini-3-pro-preview');
+    } catch (error) {
+        console.error('Failed to process cookies:', error);
+    }
+});
+
 function createWindow() {
     const win = new BrowserWindow({
         width: 1280,
@@ -256,265 +438,7 @@ function createWindow() {
         return { action: 'allow' };
     });
 
-    // IPC Listeners for custom title bar
-    ipcMain.on('window-minimize', () => {
-        win.minimize();
-    });
 
-    ipcMain.on('window-maximize', () => {
-        if (win.isMaximized()) {
-            win.unmaximize();
-        } else {
-            win.maximize();
-        }
-    });
-
-    ipcMain.on('window-close', () => {
-        win.close();
-    });
-
-    ipcMain.on('reset-app', async () => {
-        console.log('Resetting app data...');
-        
-        // Delete config file to reset settings to default
-        if (fs.existsSync(configPath)) {
-            try {
-                fs.unlinkSync(configPath);
-                console.log('Config file deleted.');
-            } catch (err) {
-                console.error('Failed to delete config file:', err);
-            }
-        }
-
-        try {
-            console.log('Clearing storage data...');
-            await session.defaultSession.clearStorageData();
-            console.log('Storage data cleared.');
-        } catch (err) {
-            console.error('Failed to clear storage data (continuing anyway):', err);
-        }
-
-        console.log('Relaunching app...');
-        // Relaunch logic handles both dev and packaged modes
-        if (!app.isPackaged) {
-            app.relaunch({ args: process.argv.slice(1) });
-        } else {
-            app.relaunch();
-        }
-        
-        app.exit(0);
-    });
-
-    // Navigation IPCs
-    ipcMain.on('nav-back', () => {
-        if (win.webContents.canGoBack()) win.webContents.goBack();
-    });
-
-    ipcMain.on('nav-forward', () => {
-        if (win.webContents.canGoForward()) win.webContents.goForward();
-    });
-
-    ipcMain.on('nav-reload', () => {
-        win.webContents.reload();
-    });
-
-    ipcMain.on('nav-home', () => {
-        const currentConfig = loadConfig();
-        win.loadURL(currentConfig.customHomePage || defaultConfig.customHomePage);
-    });
-
-    // Settings IPCs
-    ipcMain.handle('get-settings', () => {
-        return loadConfig();
-    });
-
-    ipcMain.on('save-settings', (event, newConfig) => {
-        saveConfig(newConfig);
-        console.log('Settings saved. DevTools:', newConfig.enableDevTools);
-
-        // Handle dynamic DevTools toggling
-        if (newConfig.enableDevTools) {
-             console.log('Opening DevTools...', newConfig.devToolsMode);
-             // Close first to ensure mode switch happens cleanly
-             event.sender.closeDevTools();
-             // Add small delay or just open
-             setTimeout(() => {
-                event.sender.openDevTools({ mode: newConfig.devToolsMode || 'detach' });
-             }, 100);
-        } else {
-             console.log('Closing DevTools...');
-             event.sender.closeDevTools();
-        }
-
-        // Broadcast settings update to all windows (or at least the sender)
-        event.sender.send('settings-updated', newConfig);
-    });
-
-    // Immediate DevTools Toggle
-    ipcMain.on('set-devtools-state', (event, { open, mode }) => {
-        const config = loadConfig();
-        config.enableDevTools = open;
-        config.devToolsMode = mode;
-        saveConfig(config);
-        
-        console.log(`Immediate DevTools update: open=${open}, mode=${mode}`);
-
-        if (open) {
-             // Close first to ensure mode switch happens cleanly or if it was already open
-             event.sender.closeDevTools();
-             setTimeout(() => {
-                event.sender.openDevTools({ mode: mode || 'detach' });
-             }, 100);
-        } else {
-             event.sender.closeDevTools();
-        }
-    });
-
-    // Generic External Link Opener
-    ipcMain.on('open-external-link', (event, url) => {
-        shell.openExternal(url);
-    });
-
-    // IPC Listeners for External Login
-    ipcMain.on('open-external-login', async () => {
-        console.log('Received open-external-login request');
-        const url = 'https://aistudio.google.com/prompts/new_chat';
-        
-        const browsers = [];
-        
-        if (process.platform === 'linux') {
-            browsers.push('google-chrome');
-            browsers.push('google-chrome-stable');
-            browsers.push('microsoft-edge');
-            browsers.push('microsoft-edge-stable');
-            browsers.push('chromium');
-            browsers.push('chromium-browser');
-            browsers.push('brave-browser');
-        } else if (process.platform === 'darwin') {
-            browsers.push('Google Chrome');
-            browsers.push('Microsoft Edge');
-            browsers.push('Brave Browser');
-            browsers.push('Chromium');
-        } else if (process.platform === 'win32') {
-            browsers.push('chrome');
-            browsers.push('msedge');
-            browsers.push('brave');
-        }
-
-        let opened = false;
-
-        for (const browser of browsers) {
-            try {
-                if (process.platform === 'linux') {
-                    // Check if binary exists
-                    await new Promise((resolve, reject) => {
-                        exec(`which ${browser}`, (err) => {
-                            if (err) reject(err);
-                            else resolve();
-                        });
-                    });
-                    // Spawn detached
-                    const child = spawn(browser, [url], { detached: true, stdio: 'ignore' });
-                    child.unref();
-                    opened = true;
-                    console.log(`Opened with ${browser}`);
-                    break;
-                } else if (process.platform === 'darwin') {
-                    await new Promise((resolve, reject) => {
-                        exec(`open -a "${browser}" "${url}"`, (err) => {
-                            if (err) reject(err);
-                            else resolve();
-                        });
-                    });
-                    opened = true;
-                    console.log(`Opened with ${browser}`);
-                    break;
-                } else if (process.platform === 'win32') {
-                    await new Promise((resolve, reject) => {
-                        exec(`start ${browser} "${url}"`, (err) => {
-                            if (err) reject(err);
-                            else resolve();
-                        });
-                    });
-                    opened = true;
-                    console.log(`Opened with ${browser}`);
-                    break;
-                }
-            } catch (e) {
-                // Continue to next browser
-            }
-        }
-
-        if (!opened) {
-            console.log('No preferred browser found, falling back to default.');
-            await shell.openExternal(url);
-        }
-    });
-
-    ipcMain.on('set-session-cookie', async (event, rawCookieValue) => {
-        try {
-            // 1. Clear existing cookies to avoid conflicts (like NID overwrite errors)
-            console.log('Clearing existing cookies...');
-            await session.defaultSession.clearStorageData({ storages: ['cookies'] });
-
-            const setCookie = async (name, value) => {
-                // Determine if cookie should be httpOnly (hidden from JS) or accessible
-                // SAPISID, APISID, and their variants MUST be accessible for client-side auth hashing
-                const accessibleCookies = ['SAPISID', 'APISID', '__Secure-1PAPISID', '__Secure-3PAPISID', 'SIDCC', '__Secure-1PSIDCC', '__Secure-3PSIDCC'];
-                const isAccessible = accessibleCookies.includes(name.trim()) || name.trim().startsWith('_ga');
-
-                // Set expiration date to 1 year from now to ensure persistence
-                const expirationDate = Math.floor(Date.now() / 1000) + (60 * 60 * 24 * 365);
-
-                const cookie = {
-                    url: 'https://google.com',
-                    name: name.trim(),
-                    value: value.trim(),
-                    domain: '.google.com',
-                    path: '/',
-                    secure: true,
-                    httpOnly: !isAccessible, // Allow JS access for auth token generation
-                    sameSite: 'no_restriction',
-                    expirationDate: expirationDate
-                };
-                
-                try {
-                    await session.defaultSession.cookies.set(cookie);
-                    console.log(`Cookie ${name.trim()} set successfully (httpOnly: ${!isAccessible})`);
-                } catch (e) {
-                    console.error(`Failed to set cookie ${name.trim()}:`, e);
-                }
-            };
-
-            // Strip "Cookie:" prefix if user copied the header name too
-            let cleanCookieValue = rawCookieValue.trim();
-            if (cleanCookieValue.toLowerCase().startsWith('cookie:')) {
-                cleanCookieValue = cleanCookieValue.substring(7).trim();
-            }
-
-            if (cleanCookieValue.includes('=')) {
-                // Handle "key=value; key2=value2" format
-                const cookies = cleanCookieValue.split(';');
-                for (const c of cookies) {
-                    const parts = c.split('=');
-                    if (parts.length >= 2) {
-                        const name = parts[0];
-                        const value = parts.slice(1).join('=');
-                        await setCookie(name, value);
-                    }
-                }
-            } else {
-                // Backward compatibility
-                await setCookie('__Secure-1PSID', rawCookieValue);
-            }
-            
-            console.log('All cookies processed. Reloading window...');
-            // Force load the target URL to ensure we don't get stuck on the login page
-            win.loadURL('https://aistudio.google.com/prompts/new_chat?model=gemini-3-pro-preview');
-        } catch (error) {
-            console.error('Failed to process cookies:', error);
-        }
-    });
 }
 
 app.whenReady().then(() => {
