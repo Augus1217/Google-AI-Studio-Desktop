@@ -12,142 +12,16 @@ try {
 console.log('Preload script loaded');
 
 // Translations
-const translations = {
-    'en': {
-        'settings': 'Settings',
-        'auto_clear_cookies': 'Auto Clear Cookies on Startup',
-        'show_url': 'Show URL in Title Bar',
-        'custom_home_page': 'Custom Home Page URL',
-        'language': 'Language',
-        'system_default': 'System Default',
-        'save': 'Save',
-        'cancel': 'Cancel',
-        'external_login': 'External Login',
-        'login_step1': '1. Open Google AI Studio in Chrome/Edge (NOT Firefox) and sign in.',
-        'login_step2': '2. IMPORTANT: Use Chrome/Edge to get cookies.\nOpen DevTools (F12) -> Network.\nReload page -> Click "new_chat" request.\nHeaders -> Request Headers.\nCopy the ENTIRE "Cookie" value.',
-        'paste_placeholder': 'Paste cookies here (key=value; key2=value2)...',
-        'login': 'Login',
-        'login_rejected_tooltip': 'Login Rejected? Click here to use External Login!',
-        'reset_app': 'Reset App',
-        'reset_app_confirm': 'Are you sure you want to reset the app? This will clear all data and restart.',
-        'copy_link': 'Copy Link',
-        'window_controls_position': 'Window Controls Position',
-        'position_auto': 'Auto (OS Default)',
-        'position_left': 'Left (macOS style)',
-        'position_right': 'Right (Windows/Linux style)',
-        'star_repo': 'If you found it useful, give our repo a star please! ⭐',
-        'enable_devtools': 'Enable Developer Tools',
-        'devtools_mode': 'DevTools Mode',
-        'mode_detach': 'Detached (Separate Window)',
-        'mode_right': 'Embedded (Right)',
-        'mode_bottom': 'Embedded (Bottom)',
-        'about': 'About',
-        'about_desc': 'An electron-based desktop wrapper for Google AI Studio.',
-        'repo_link': 'GitHub Repository',
-        'version': 'Version'
-    },
-    'zh-TW': {
-        'settings': '設定',
-        'auto_clear_cookies': '啟動時自動清除 Cookie',
-        'show_url': '在標題列顯示網址',
-        'custom_home_page': '自訂首頁網址',
-        'language': '語言',
-        'system_default': '系統預設',
-        'save': '儲存',
-        'cancel': '取消',
-        'external_login': '外部登入',
-        'login_step1': '1. 在 Chrome/Edge (非 Firefox) 中開啟 Google AI Studio 並登入。',
-        'login_step2': '2. 重要：請使用 Chrome/Edge 獲取 Cookie。\n開啟開發者工具 (F12) -> Network (網路)。\n重新載入頁面 -> 點擊 "new_chat" 請求。\nHeaders (標頭) -> Request Headers (請求標頭)。\n複製整個 "Cookie" 值。',
-        'paste_placeholder': '在此貼上 Cookie (key=value; key2=value2)...',
-        'login': '登入',
-        'login_rejected_tooltip': '登入被拒？點擊此處使用外部登入！',
-        'reset_app': '重置應用程式',
-        'reset_app_confirm': '您確定要重置應用程式嗎？這將清除所有資料並重新啟動。',
-        'copy_link': '複製連結',
-        'window_controls_position': '視窗按鈕位置',
-        'position_auto': '自動 (依作業系統)',
-        'position_left': '左側 (macOS 風格)',
-        'position_right': '右側 (Windows/Linux 風格)',
-        'star_repo': '如果您覺得好用，請幫我們的專案按個星星！ ⭐',
-        'enable_devtools': '啟用開發者工具',
-        'devtools_mode': '開發者工具模式',
-        'mode_detach': '獨立視窗',
-        'mode_right': '嵌入視窗 (右側)',
-        'mode_bottom': '嵌入視窗 (底部)',
-        'about': '關於',
-        'about_desc': 'Google AI Studio 的 Electron 桌面版封裝。',
-        'repo_link': 'GitHub 儲存庫',
-        'version': '版本'
-    },
-    'zh-CN': {
-        'settings': '设置',
-        'auto_clear_cookies': '启动时自动清除 Cookie',
-        'show_url': '在标题栏显示网址',
-        'custom_home_page': '自定义首页网址',
-        'language': '语言',
-        'system_default': '系统默认',
-        'save': '保存',
-        'cancel': '取消',
-        'external_login': '外部登录',
-        'login_step1': '1. 在 Chrome/Edge (非 Firefox) 中开启 Google AI Studio 并登录。',
-        'login_step2': '2. 重要：请使用 Chrome/Edge 获取 Cookie。\n开启开发者工具 (F12) -> Network (网络)。\n重新加载页面 -> 点击 "new_chat" 请求。\nHeaders (标头) -> Request Headers (请求标头)。\n复制整个 "Cookie" 值。',
-        'paste_placeholder': '在此粘贴 Cookie (key=value; key2=value2)...',
-        'login': '登录',
-        'login_rejected_tooltip': '登录被拒？点击此处使用外部登录！',
-        'reset_app': '重置应用程序',
-        'reset_app_confirm': '您确定要重置应用程序吗？这将清除所有数据并重新启动。',
-        'copy_link': '复制链接',
-        'window_controls_position': '窗口按钮位置',
-        'position_auto': '自动 (依操作系统)',
-        'position_left': '左侧 (macOS 风格)',
-        'position_right': '右侧 (Windows/Linux 风格)',
-        'star_repo': '如果您觉得好用，请帮我们的专案按个星星！ ⭐',
-        'enable_devtools': '启用开发者工具',
-        'devtools_mode': '开发者工具模式',
-        'mode_detach': '独立窗口',
-        'mode_right': '嵌入窗口 (右侧)',
-        'mode_bottom': '嵌入窗口 (底部)',
-        'about': '关于',
-        'about_desc': 'Google AI Studio 的 Electron 桌面版封装。',
-        'repo_link': 'GitHub 仓库',
-        'version': '版本'
-    },
-    'ja': {
-        'settings': '設定',
-        'auto_clear_cookies': '起動時にCookieを自動消去',
-        'show_url': 'タイトルバーにURLを表示',
-        'custom_home_page': 'カスタムホームページURL',
-        'language': '言語',
-        'system_default': 'システムデフォルト',
-        'save': '保存',
-        'cancel': 'キャンセル',
-        'external_login': '外部ログイン',
-        'login_step1': '1. Chrome/Edge（Firefox以外）でGoogle AI Studioを開き、ログインします。',
-        'login_step2': '2. 重要：Cookieを取得するにはChrome/Edgeを使用してください。\n開発者ツール（F12）-> Network（ネットワーク）を開きます。\nページをリロード -> "new_chat"リクエストをクリック。\nHeaders（ヘッダー）-> Request Headers（リクエストヘッダー）。\n"Cookie"の値をすべてコピーします。',
-        'paste_placeholder': 'ここにCookieを貼り付けてください (key=value; key2=value2)...',
-        'login': 'ログイン',
-        'login_rejected_tooltip': 'ログインが拒否されましたか？ここをクリックして外部ログインを使用してください！',
-        'reset_app': 'アプリをリセット',
-        'reset_app_confirm': 'アプリをリセットしてもよろしいですか？すべてのデータが消去され、再起動します。',
-        'copy_link': 'リンクをコピー',
-        'window_controls_position': 'ウィンドウボタンの位置',
-        'position_auto': '自動 (OSデフォルト)',
-        'position_left': '左側 (macOSスタイル)',
-        'position_right': '右側 (Windows/Linuxスタイル)',
-        'star_repo': '役に立った場合は、リポジトリにスターをつけてください！ ⭐',
-        'enable_devtools': '開発者ツールを有効にする',
-        'devtools_mode': '開発者ツールモード',
-        'mode_detach': '別ウィンドウ',
-        'mode_right': '埋め込み (右側)',
-        'mode_bottom': '埋め込み (下側)',
-        'about': 'アプリについて',
-        'about_desc': 'Google AI Studio の Electron デスクトップラッパー。',
-        'repo_link': 'GitHub リポジトリ',
-        'version': 'バージョン'
-    }
-};
+let translations = {};
 
-let currentConfig = null;
+// Async load translations
+ipcRenderer.invoke('get-translations').then(data => {
+    translations = data;
+    console.log('Translations loaded:', Object.keys(translations));
+}).catch(err => {
+    console.error('Failed to load translations from main:', err);
+});
+
 
 function getLanguage() {
     if (!currentConfig) return 'en';
@@ -156,11 +30,17 @@ function getLanguage() {
         lang = navigator.language;
     }
     
+    // Exact match
     if (translations[lang]) return lang;
-    if (lang.startsWith('zh')) {
-        return lang.toLowerCase().includes('tw') || lang.toLowerCase().includes('hk') ? 'zh-TW' : 'zh-CN';
+    
+    // Prefix match (e.g. es-ES -> es)
+    const code = lang.split('-')[0];
+    if (translations[code]) return code;
+    
+    // Special cases
+    if (lang.toLowerCase().includes('zh')) {
+        return (lang.toLowerCase().includes('tw') || lang.toLowerCase().includes('hk')) ? 'zh-TW' : 'zh-CN';
     }
-    if (lang.startsWith('ja')) return 'ja';
     
     return 'en';
 }
@@ -180,6 +60,23 @@ function injectTitleBar() {
     if (document.getElementById('custom-title-bar')) return;
 
     console.log('Injecting title bar...');
+
+    // Inject Google Fonts
+    const fontPreconnect = document.createElement('link');
+    fontPreconnect.rel = 'preconnect';
+    fontPreconnect.href = 'https://fonts.googleapis.com';
+    document.head.appendChild(fontPreconnect);
+
+    const fontPreconnectCdn = document.createElement('link');
+    fontPreconnectCdn.rel = 'preconnect';
+    fontPreconnectCdn.href = 'https://fonts.gstatic.com';
+    fontPreconnectCdn.crossOrigin = 'anonymous';
+    document.head.appendChild(fontPreconnectCdn);
+
+    const fontLink = document.createElement('link');
+    fontLink.rel = 'stylesheet';
+    fontLink.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Tight:wght@500;600;700&display=swap';
+    document.head.appendChild(fontLink);
 
     // Add Styles for animations
     const style = document.createElement('style');
@@ -214,6 +111,20 @@ function injectTitleBar() {
             opacity: 0;
             transform: translateX(-100%);
         }
+        /* Custom Scrollbar for Modals */
+        .custom-dialog-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-dialog-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-dialog-scroll::-webkit-scrollbar-thumb {
+            background-color: #5f6368;
+            border-radius: 4px;
+        }
+        .custom-dialog-scroll::-webkit-scrollbar-thumb:hover {
+            background-color: #8ab4f8;
+        }
     `;
     document.head.appendChild(style);
 
@@ -225,7 +136,7 @@ function injectTitleBar() {
         left: 0;
         width: 100%;
         height: 32px;
-        background: #202124;
+        background: #1f1f1f;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -269,7 +180,7 @@ function injectTitleBar() {
         justify-content: center;
         align-items: center;
         cursor: pointer;
-        font-family: sans-serif;
+        font-family: 'Inter', sans-serif;
         font-size: 16px;
         margin: 0 2px;
         border-radius: 4px;
@@ -358,7 +269,7 @@ function injectTitleBar() {
         flex-grow: 1;
         text-align: center;
         color: #9aa0a6;
-        font-family: sans-serif;
+        font-family: 'Inter', sans-serif;
         font-size: 12px;
         white-space: nowrap;
         overflow: hidden;
@@ -479,7 +390,7 @@ function showLoginGuidance() {
         color: #202124;
         padding: 8px 12px;
         border-radius: 4px;
-        font-family: sans-serif;
+        font-family: 'Inter', sans-serif;
         font-size: 12px;
         font-weight: bold;
         z-index: 1000000;
@@ -566,143 +477,293 @@ async function showSettingsModal() {
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0,0,0,0.85);
+        background: rgba(0,0,0,0.6); 
         z-index: 1000000;
         display: flex;
         justify-content: center;
         align-items: center;
         color: #fff;
-        font-family: sans-serif;
+        font-family: 'Inter', sans-serif;
     `;
-
-    const content = document.createElement('div');
-    content.style.cssText = `
-        background: #202124;
-        padding: 30px;
-        border-radius: 8px;
-        border: 1px solid #5f6368;
-        width: 400px;
-        max-width: 90%;
-    `;
-
-    const title = document.createElement('h2');
-    title.textContent = t('settings');
-    title.style.marginTop = '0';
-    title.style.marginBottom = '20px';
-    title.style.textAlign = 'center';
-
-    // Language Selector
-    const langContainer = document.createElement('div');
-    langContainer.style.marginBottom = '20px';
     
-    const langLabel = document.createElement('label');
-    langLabel.textContent = t('language');
-    langLabel.style.display = 'block';
-    langLabel.style.marginBottom = '8px';
+    // Close on background click
+    modal.onclick = (e) => {
+        if (e.target === modal) modal.remove();
+    };
 
-    const langSelect = document.createElement('select');
-    langSelect.style.cssText = `
-        width: 100%;
+    const dialogContainer = document.createElement('div');
+    dialogContainer.className = 'mat-mdc-dialog-container mdc-dialog cdk-dialog-container mdc-dialog--open';
+    dialogContainer.style.cssText = `
+        background: #1f1f1f;
+        border-radius: 8px;
+        box-shadow: 0 11px 15px -7px #0003, 0 24px 38px 3px #00000024, 0 9px 46px 8px #0000001f;
+        width: 500px;
+        max-width: 90vw;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    `;
+
+    // Header
+    const header = document.createElement('div');
+    header.className = 'header';
+    header.style.cssText = `
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 24px 24px 0 24px;
+        margin-bottom: 20px;
+    `;
+    
+    const title = document.createElement('div');
+    title.className = 'title';
+    title.style.cssText = `
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 24px;
+        font-weight: 500;
+        line-height: 32px;
+        color: #e8eaed;
+    `;
+    title.textContent = t('settings');
+    
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'close-button ms-button-borderless ms-button-icon';
+    closeBtn.textContent = '✕';
+    closeBtn.style.cssText = `
+        background: transparent;
+        border: none;
+        color: #e8eaed;
+        cursor: pointer;
         padding: 8px;
-        background: #303134;
+        border-radius: 50%;
+        font-size: 16px;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    `;
+    closeBtn.onmouseenter = () => closeBtn.style.background = 'rgba(255,255,255,0.08)';
+    closeBtn.onmouseleave = () => closeBtn.style.background = 'transparent';
+    closeBtn.onclick = () => modal.remove();
+    
+    header.appendChild(title);
+    header.appendChild(closeBtn);
+
+    // Content (Scrollable)
+    const content = document.createElement('div');
+    content.className = 'mat-mdc-dialog-content mdc-dialog__content details-container custom-dialog-scroll';
+    content.style.cssText = `
+        padding: 0 24px 24px 24px;
+        overflow-y: auto;
+        flex-grow: 1;
+    `;
+
+    // Footer
+    const footer = document.createElement('div');
+    footer.className = 'footer';
+    footer.style.cssText = `
+        padding: 16px 24px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        border-top: 1px solid #3c4043;
+    `;
+
+    // Helper: Create Toggle Switch
+    const createToggle = (isChecked, id) => {
+        const wrapper = document.createElement('label');
+        wrapper.style.cssText = `
+            position: relative;
+            display: inline-block;
+            width: 36px;
+            height: 14px;
+            margin-left: 10px;
+        `;
+        
+        const input = document.createElement('input');
+        input.type = 'checkbox';
+        input.checked = isChecked;
+        if (id) input.id = id;
+        input.style.cssText = `
+            opacity: 0;
+            width: 0;
+            height: 0;
+        `;
+        
+        const slider = document.createElement('span');
+        slider.style.cssText = `
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #5f6368; /* Track Off */
+            transition: .4s;
+            border-radius: 14px;
+            opacity: 0.5;
+        `;
+        
+        const knob = document.createElement('span');
+        knob.style.cssText = `
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 0px; 
+            bottom: -3px; 
+            background-color: #bdc1c6; /* Thumb Off */
+            transition: .2s;
+            border-radius: 50%;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
+        `;
+
+        const updateState = () => {
+            if (input.checked) {
+                slider.style.backgroundColor = 'rgba(138, 180, 248, 0.5)'; // Track On
+                knob.style.backgroundColor = '#8ab4f8'; // Thumb On
+                knob.style.transform = 'translateX(20px)';
+            } else {
+                slider.style.backgroundColor = '#5f6368'; // Track Off
+                knob.style.backgroundColor = '#bdc1c6'; // Thumb Off
+                knob.style.transform = 'translateX(0)';
+            }
+        };
+
+        input.addEventListener('change', updateState);
+        // Initial state
+        setTimeout(updateState, 0);
+
+        wrapper.appendChild(input);
+        wrapper.appendChild(slider);
+        slider.appendChild(knob);
+        
+        return { wrapper, input };
+    };
+
+    // --- Section Helper ---
+    const createSection = () => {
+        const div = document.createElement('div');
+        div.style.cssText = `
+            margin-bottom: 24px;
+        `;
+        return div;
+    };
+    
+    // --- Styles for Field Labels ---
+    const labelStyle = `
+        display: block;
+        color: #e8eaed;
+        font-family: 'Inter', sans-serif;
+        font-size: 14px;
+        font-weight: 500;
+        letter-spacing: 0.1px;
+        margin-bottom: 8px;
+    `;
+    
+    // --- Styles for Inputs ---
+    const inputStyle = `
+        width: 100%;
+        padding: 8px 12px;
+        background: transparent;
         border: 1px solid #5f6368;
-        color: #fff;
+        color: #e8eaed;
         border-radius: 4px;
         box-sizing: border-box;
+        font-family: 'Inter', sans-serif;
+        font-size: 14px;
+        outline: none;
     `;
+
+    // Language Selector
+    const langContainer = createSection();
+    const langLabel = document.createElement('label');
+    langLabel.textContent = t('language');
+    langLabel.style.cssText = labelStyle;
+
+    const langSelect = document.createElement('select');
+    langSelect.style.cssText = inputStyle + ' cursor: pointer;';
     
     const languages = [
         { code: 'auto', label: t('system_default') },
         { code: 'en', label: 'English' },
-        { code: 'zh-TW', label: '繁體中文' },
+        { code: 'es', label: 'Español' },
+        { code: 'fr', label: 'Français' },
+        { code: 'de', label: 'Deutsch' },
+        { code: 'it', label: 'Italiano' },
+        { code: 'pt', label: 'Português' },
+        { code: 'nl', label: 'Nederlands' },
+        { code: 'pl', label: 'Polski' },
+        { code: 'tr', label: 'Türkçe' },
+        { code: 'ru', label: 'Русский' },
+        { code: 'vi', label: 'Tiếng Việt' },
+        { code: 'ko', label: '한국어' },
+        { code: 'ja', label: '日本語' },
         { code: 'zh-CN', label: '简体中文' },
-        { code: 'ja', label: '日本語' }
+        { code: 'zh-TW', label: '繁體中文' }
     ];
 
     languages.forEach(lang => {
         const option = document.createElement('option');
         option.value = lang.code;
         option.textContent = lang.label;
+        // Dark theme for dropdown options
+        option.style.backgroundColor = '#1f1f1f';
+        option.style.color = '#e8eaed';
         if (config.language === lang.code) option.selected = true;
         langSelect.appendChild(option);
     });
+    // Add hover effect for select
+    langSelect.onfocus = () => langSelect.style.borderColor = '#8ab4f8';
+    langSelect.onblur = () => langSelect.style.borderColor = '#5f6368';
 
     langContainer.appendChild(langLabel);
     langContainer.appendChild(langSelect);
 
-    // Auto Clear Cookies Toggle
-    const toggleContainer = document.createElement('div');
-    toggleContainer.style.marginBottom = '20px';
-    toggleContainer.style.display = 'flex';
-    toggleContainer.style.alignItems = 'center';
 
-    const toggleLabel = document.createElement('label');
-    toggleLabel.textContent = t('auto_clear_cookies');
-    toggleLabel.style.flexGrow = '1';
+    // Toggles Section (Flex list)
+    const toggleList = createSection();
+    toggleList.style.display = 'flex';
+    toggleList.style.flexDirection = 'column';
+    toggleList.style.gap = '16px';
 
-    const toggleInput = document.createElement('input');
-    toggleInput.type = 'checkbox';
-    toggleInput.checked = config.autoClearCookies;
+    const createToggleRow = (labelText, checkedState, id) => {
+        const container = document.createElement('div');
+        container.style.cssText = `display: flex; align-items: center; justify-content: space-between;`;
+        
+        const label = document.createElement('label');
+        label.textContent = labelText;
+        label.style.cssText = 'color: #e8eaed; font-size: 14px; flex-grow: 1;';
+        
+        const { wrapper, input } = createToggle(checkedState, id);
+        container.appendChild(label);
+        container.appendChild(wrapper);
+        return { container, input };
+    };
+
+    const { container: autoClearRow, input: toggleInput } = createToggleRow(t('auto_clear_cookies'), config.autoClearCookies);
+    const { container: notifRow, input: notifInput } = createToggleRow(t('enable_reply_notification'), config.enableReplyNotification !== false, 'notif-toggle');
+    const { container: urlRow, input: urlToggleInput } = createToggleRow(t('show_url'), config.showUrlInTitleBar);
+    const { container: devToolsRow, input: devToolsToggleInput } = createToggleRow(t('enable_devtools'), config.enableDevTools, 'settings-devtools-toggle');
     
-    toggleContainer.appendChild(toggleLabel);
-    toggleContainer.appendChild(toggleInput);
+    toggleList.appendChild(autoClearRow);
+    toggleList.appendChild(notifRow);
+    toggleList.appendChild(urlRow);
+    toggleList.appendChild(devToolsRow);
 
-    // Show URL in Title Bar Toggle
-    const urlToggleContainer = document.createElement('div');
-    urlToggleContainer.style.marginBottom = '20px';
-    urlToggleContainer.style.display = 'flex';
-    urlToggleContainer.style.alignItems = 'center';
-
-    const urlToggleLabel = document.createElement('label');
-    urlToggleLabel.textContent = t('show_url');
-    urlToggleLabel.style.flexGrow = '1';
-
-    const urlToggleInput = document.createElement('input');
-    urlToggleInput.type = 'checkbox';
-    urlToggleInput.checked = config.showUrlInTitleBar;
-    
-    urlToggleContainer.appendChild(urlToggleLabel);
-    urlToggleContainer.appendChild(urlToggleInput);
-
-    // Enable DevTools Toggle
-    const devToolsToggleContainer = document.createElement('div');
-    devToolsToggleContainer.style.marginBottom = '20px';
-    devToolsToggleContainer.style.display = 'flex';
-    devToolsToggleContainer.style.alignItems = 'center';
-
-    const devToolsToggleLabel = document.createElement('label');
-    devToolsToggleLabel.textContent = t('enable_devtools');
-    devToolsToggleLabel.style.flexGrow = '1';
-
-    const devToolsToggleInput = document.createElement('input');
-    devToolsToggleInput.type = 'checkbox';
-    devToolsToggleInput.id = 'settings-devtools-toggle'; // ID for sync
-    devToolsToggleInput.checked = config.enableDevTools;
-    
-    devToolsToggleContainer.appendChild(devToolsToggleLabel);
-    devToolsToggleContainer.appendChild(devToolsToggleInput);
 
     // DevTools Mode Selector (Hidden if disabled)
-    const modeContainer = document.createElement('div');
-    modeContainer.id = 'settings-devtools-mode-container'; // ID for sync
-    modeContainer.style.marginBottom = '20px';
-    modeContainer.style.display = config.enableDevTools ? 'block' : 'none'; // Initial state
+    const modeContainer = createSection();
+    modeContainer.id = 'settings-devtools-mode-container'; 
+    modeContainer.style.display = config.enableDevTools ? 'block' : 'none'; 
 
     const modeLabel = document.createElement('label');
     modeLabel.textContent = t('devtools_mode');
-    modeLabel.style.display = 'block';
-    modeLabel.style.marginBottom = '8px';
+    modeLabel.style.cssText = labelStyle;
 
     const modeSelect = document.createElement('select');
-    modeSelect.style.cssText = `
-        width: 100%;
-        padding: 8px;
-        background: #303134;
-        border: 1px solid #5f6368;
-        color: #fff;
-        border-radius: 4px;
-        box-sizing: border-box;
-    `;
+    modeSelect.style.cssText = inputStyle + ' cursor: pointer;';
 
     const modes = [
         { code: 'detach', label: t('mode_detach') },
@@ -714,14 +775,18 @@ async function showSettingsModal() {
         const option = document.createElement('option');
         option.value = m.code;
         option.textContent = m.label;
+        option.style.backgroundColor = '#1f1f1f';
+        option.style.color = '#e8eaed';
         if ((config.devToolsMode || 'detach') === m.code) option.selected = true;
         modeSelect.appendChild(option);
     });
+    modeSelect.onfocus = () => modeSelect.style.borderColor = '#8ab4f8';
+    modeSelect.onblur = () => modeSelect.style.borderColor = '#5f6368';
 
     modeContainer.appendChild(modeLabel);
     modeContainer.appendChild(modeSelect);
 
-    // Immediate Toggle Logic
+    // Immediate Toggle Logic for DevTools display
     const updateDevToolsState = () => {
         const isOpen = devToolsToggleInput.checked;
         const mode = modeSelect.value;
@@ -732,121 +797,377 @@ async function showSettingsModal() {
     devToolsToggleInput.onchange = updateDevToolsState;
     modeSelect.onchange = updateDevToolsState;
 
-    // Custom Home Page Input
-    const homeContainer = document.createElement('div');
-    homeContainer.style.marginBottom = '20px';
 
+    // Custom Home Page Input
+    const homeContainer = createSection();
     const homeLabel = document.createElement('label');
     homeLabel.textContent = t('custom_home_page');
-    homeLabel.style.display = 'block';
-    homeLabel.style.marginBottom = '8px';
+    homeLabel.style.cssText = labelStyle;
+
+    const homeInputWrapper = document.createElement('div');
+    homeInputWrapper.style.display = 'flex';
+    homeInputWrapper.style.gap = '8px';
 
     const homeInput = document.createElement('input');
     homeInput.type = 'text';
     homeInput.value = config.customHomePage || '';
-    homeInput.style.cssText = `
-        width: 100%;
-        padding: 8px;
-        background: #303134;
+    homeInput.style.cssText = inputStyle + ' flex-grow: 1;';
+    homeInput.onfocus = () => homeInput.style.borderColor = '#8ab4f8';
+    homeInput.onblur = () => homeInput.style.borderColor = '#5f6368';
+    
+    // "Set Current" Button styled like Material Icon Button
+    const setHomeBtn = document.createElement('button');
+    setHomeBtn.textContent = '⌂ Set Current'; 
+    setHomeBtn.title = 'Set current page as home page';
+    setHomeBtn.style.cssText = `
+        padding: 0 16px;
+        height: 36px;
+        background: transparent;
+        color: #8ab4f8;
         border: 1px solid #5f6368;
-        color: #fff;
-        border-radius: 4px;
-        box-sizing: border-box;
-    `;
-
-    homeContainer.appendChild(homeLabel);
-    homeContainer.appendChild(homeInput);
-
-    // Reset App Button
-    const resetContainer = document.createElement('div');
-    resetContainer.style.marginBottom = '20px';
-    resetContainer.style.borderTop = '1px solid #3c4043';
-    resetContainer.style.paddingTop = '20px';
-
-    const resetBtn = document.createElement('button');
-    resetBtn.textContent = t('reset_app');
-    resetBtn.style.cssText = `
-        width: 100%;
-        padding: 10px;
-        background: #5c1818; /* Dark red background */
-        border: 1px solid #e81123;
-        color: #ffcccc;
         border-radius: 4px;
         cursor: pointer;
-        font-weight: bold;
+        font-family: 'Inter', sans-serif;
+        font-size: 13px;
+        font-weight: 500;
+        white-space: nowrap;
+        display: flex;
+        align-items: center;
+    `;
+    
+    setHomeBtn.onmouseenter = () => setHomeBtn.style.background = 'rgba(138, 180, 248, 0.08)';
+    setHomeBtn.onmouseleave = () => setHomeBtn.style.background = 'transparent';
+    
+    setHomeBtn.onclick = () => {
+        homeInput.value = window.location.href;
+        const originalText = setHomeBtn.textContent;
+        setHomeBtn.textContent = '✓ Set';
+        setTimeout(() => {
+            setHomeBtn.textContent = originalText;
+        }, 1000);
+    };
+
+    homeInputWrapper.appendChild(homeInput);
+    homeInputWrapper.appendChild(setHomeBtn);
+    homeContainer.appendChild(homeLabel);
+    homeContainer.appendChild(homeInputWrapper);
+
+    // Profile Management Section
+    const profileContainer = createSection();
+    profileContainer.style.borderTop = '1px solid #3c4043';
+    profileContainer.style.paddingTop = '16px';
+
+    const profileTitle = document.createElement('div');
+    profileTitle.textContent = t('profiles');
+    profileTitle.style.cssText = labelStyle;
+    profileContainer.appendChild(profileTitle);
+
+    // Profile List
+    const profileListDiv = document.createElement('div');
+    profileListDiv.style.marginBottom = '12px';
+    
+    // Create new profile UI
+    const createProfileDiv = document.createElement('div');
+    createProfileDiv.style.cssText = `display: flex; gap: 8px; margin-bottom: 16px;`;
+    
+    const newProfileInput = document.createElement('input');
+    newProfileInput.type = 'text';
+    newProfileInput.placeholder = t('profile_name');
+    newProfileInput.style.cssText = inputStyle + ' flex-grow: 1;';
+    newProfileInput.onfocus = () => newProfileInput.style.borderColor = '#8ab4f8';
+    newProfileInput.onblur = () => newProfileInput.style.borderColor = '#5f6368';
+    
+    const createProfileBtn = document.createElement('button');
+    createProfileBtn.textContent = t('create');
+    createProfileBtn.style.cssText = `
+        height: 36px; /* Match input height roughly */
+        padding: 0 16px;
+        background: #8ab4f8;
+        color: #202124;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        font-size: 14px;
+        white-space: nowrap;
+    `;
+    createProfileBtn.onmouseenter = () => createProfileBtn.style.background = '#aecbfa';
+    createProfileBtn.onmouseleave = () => createProfileBtn.style.background = '#8ab4f8';
+    
+    createProfileBtn.onclick = () => {
+        const name = newProfileInput.value.trim();
+        if (name) {
+            ipcRenderer.send('create-profile', name);
+            newProfileInput.value = '';
+        }
+    };
+    
+    createProfileDiv.appendChild(newProfileInput);
+    createProfileDiv.appendChild(createProfileBtn);
+    profileContainer.appendChild(createProfileDiv);
+    profileContainer.appendChild(profileListDiv);
+
+    // Render Profiles (Updated Style)
+    const renderProfiles = (profiles, active) => {
+        profileListDiv.textContent = ''; 
+        profiles.forEach(p => {
+            const isActive = (p === active);
+
+            const row = document.createElement('div');
+            row.style.cssText = `
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 1px solid #3c4043;
+                padding: 12px 0;
+            `;
+            
+            // Name Container
+            const nameContainer = document.createElement('div');
+            nameContainer.style.cssText = 'flex-grow: 1; margin-right: 12px; min-width: 0;';
+
+            const nameSpan = document.createElement('div');
+            nameSpan.textContent = p;
+            nameSpan.style.cssText = `
+                white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
+                color: ${isActive ? '#8ab4f8' : '#e8eaed'};
+                font-weight: ${isActive ? '500' : '400'};
+                font-size: 14px;
+            `;
+
+            const nameInput = document.createElement('input');
+            nameInput.type = 'text';
+            nameInput.value = p;
+            nameInput.style.cssText = inputStyle + ' display: none;';
+            nameInput.onfocus = () => nameInput.style.borderColor = '#8ab4f8';
+            nameInput.onblur = () => nameInput.style.borderColor = '#5f6368';
+
+            nameContainer.appendChild(nameSpan);
+            nameContainer.appendChild(nameInput);
+            
+            // Actions
+            const actionsDiv = document.createElement('div');
+            actionsDiv.style.cssText = 'display: flex; gap: 8px; flex-shrink: 0;';
+
+            const actionBtnStyle = `
+                background: transparent;
+                border: 1px solid #5f6368;
+                color: #e8eaed;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 12px;
+                padding: 4px 12px;
+                height: 28px;
+            `;
+
+            const renameBtn = document.createElement('button');
+            renameBtn.textContent = t('rename');
+            renameBtn.style.cssText = actionBtnStyle;
+            renameBtn.onmouseenter = () => renameBtn.style.background = 'rgba(255,255,255,0.05)';
+            renameBtn.onmouseleave = () => renameBtn.style.background = 'transparent';
+
+            const switchBtn = document.createElement('button');
+            const deleteBtn = document.createElement('button');
+            
+            if (isActive) {
+                switchBtn.textContent = 'Active'; 
+                try { switchBtn.textContent = t('active'); } catch(e) {}
+                switchBtn.style.cssText = actionBtnStyle + ' background: rgba(138, 180, 248, 0.1); color: #8ab4f8; border-color: transparent; cursor: default;';
+                switchBtn.onmouseenter = null; 
+                
+                deleteBtn.style.display = 'none';
+            } else {
+                switchBtn.textContent = t('switch');
+                switchBtn.style.cssText = actionBtnStyle;
+                switchBtn.onmouseenter = () => switchBtn.style.background = 'rgba(255,255,255,0.05)';
+                switchBtn.onmouseleave = () => switchBtn.style.background = 'transparent';
+                switchBtn.onclick = () => {
+                    if (confirm(`${t('switch_profile')} -> ${p}?`)) {
+                        ipcRenderer.send('switch-profile', p);
+                    }
+                };
+
+                deleteBtn.textContent = t('delete');
+                deleteBtn.style.cssText = actionBtnStyle + ' color: #ff8a80; border-color: #ff8a80;';
+                deleteBtn.onmouseenter = () => deleteBtn.style.background = 'rgba(255, 138, 128, 0.1)';
+                deleteBtn.onmouseleave = () => deleteBtn.style.background = 'transparent';
+                deleteBtn.onclick = () => {
+                     const msg = t('delete_profile_confirm').replace('{0}', p);
+                     if (confirm(msg)) {
+                         ipcRenderer.send('delete-profile', p);
+                     }
+                };
+            }
+
+            // Edit Logic
+            let isEditing = false;
+            
+            const cancelEdit = () => {
+                isEditing = false;
+                nameSpan.style.display = 'block';
+                nameInput.style.display = 'none';
+                nameInput.value = p;
+                renameBtn.textContent = t('rename');
+                switchBtn.style.display = 'block';
+                if (!isActive) deleteBtn.style.display = 'block';
+            };
+
+            const confirmEdit = () => {
+                const newName = nameInput.value.trim();
+                // If Active, warn about restart
+                if (isActive && newName && newName !== p) {
+                     if (!confirm(`${t('rename')} "${p}" -> "${newName}" ?\n(App will restart)`)) {
+                         cancelEdit();
+                         return;
+                     }
+                }
+
+                if (newName && newName !== p) {
+                    ipcRenderer.send('rename-profile', { oldName: p, newName });
+                }
+                cancelEdit();
+            };
+
+            renameBtn.onclick = () => {
+                if (isEditing) {
+                    confirmEdit();
+                } else {
+                    isEditing = true;
+                    nameSpan.style.display = 'none';
+                    nameInput.style.display = 'block';
+                    renameBtn.textContent = '✓'; // Confirm Icon
+                    switchBtn.style.display = 'none';
+                    deleteBtn.style.display = 'none';
+                    nameInput.focus();
+                    nameInput.select();
+                }
+            };
+            
+            nameInput.onkeydown = (e) => {
+                if (e.key === 'Enter') confirmEdit();
+                if (e.key === 'Escape') cancelEdit();
+            };
+            
+            actionsDiv.appendChild(renameBtn);
+            if (!isEditing) { 
+                 actionsDiv.appendChild(switchBtn);
+                 if (!isActive) actionsDiv.appendChild(deleteBtn);
+            } else {
+                switchBtn.style.display = 'none';
+                deleteBtn.style.display = 'none';
+                actionsDiv.appendChild(switchBtn);
+                actionsDiv.appendChild(deleteBtn);
+            }
+            
+            row.appendChild(nameContainer);
+            row.appendChild(actionsDiv);
+            profileListDiv.appendChild(row);
+        });
+    };
+    
+    // Initial Render
+    renderProfiles(config.profiles || ['default'], config.activeProfile || 'default');
+    
+    // Listen for updates
+    ipcRenderer.on('profiles-updated', (event, { profiles, activeProfile }) => {
+        config.profiles = profiles;
+        config.activeProfile = activeProfile;
+        renderProfiles(profiles, activeProfile);
+    });
+
+    // Reset App Button (Dangerous Zone)
+    const resetContainer = createSection();
+    resetContainer.style.marginTop = '24px';
+    
+    const resetBtn = document.createElement('button');
+    resetBtn.textContent = '⚠ ' + t('reset_app');
+    resetBtn.style.cssText = `
+        width: 100%;
+        padding: 12px;
+        background: transparent;
+        border: 1px solid #ff8a80;
+        color: #ff8a80;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        font-size: 14px;
         transition: background 0.2s;
     `;
-    resetBtn.onmouseenter = () => resetBtn.style.background = '#7a1e1e';
-    resetBtn.onmouseleave = () => resetBtn.style.background = '#5c1818';
-    
+    resetBtn.onmouseenter = () => resetBtn.style.background = 'rgba(255, 138, 128, 0.1)';
+    resetBtn.onmouseleave = () => resetBtn.style.background = 'transparent';
     resetBtn.onclick = () => {
         if (confirm(t('reset_app_confirm'))) {
             ipcRenderer.send('reset-app');
         }
     };
-
     resetContainer.appendChild(resetBtn);
 
-    // Buttons
-    const btnContainer = document.createElement('div');
-    btnContainer.style.display = 'flex';
-    btnContainer.style.justifyContent = 'flex-end';
-    btnContainer.style.gap = '10px';
-
+    // Cancel / Save Buttons
     const cancelBtn = document.createElement('button');
     cancelBtn.textContent = t('cancel');
     cancelBtn.style.cssText = `
-        padding: 8px 16px;
+        padding: 0 16px;
+        height: 36px;
         background: transparent;
-        border: 1px solid #5f6368;
-        color: #e8eaed;
+        color: #8ab4f8;
+        border: none;
         border-radius: 4px;
         cursor: pointer;
+        font-weight: 500;
+        font-size: 14px;
     `;
+    cancelBtn.onmouseenter = () => cancelBtn.style.background = 'rgba(138, 180, 248, 0.08)';
+    cancelBtn.onmouseleave = () => cancelBtn.style.background = 'transparent';
     cancelBtn.onclick = () => modal.remove();
 
     const saveBtn = document.createElement('button');
     saveBtn.textContent = t('save');
     saveBtn.style.cssText = `
-        padding: 8px 16px;
-        background: #8ab4f8;
-        border: none;
+        padding: 0 16px;
+        height: 36px;
+        background: #8ab4f8; /* Primary */
         color: #202124;
+        border: none;
         border-radius: 4px;
         cursor: pointer;
-        font-weight: bold;
+        font-weight: 500;
+        font-size: 14px;
     `;
+    saveBtn.onmouseenter = () => saveBtn.style.background = '#aecbfa';
+    saveBtn.onmouseleave = () => saveBtn.style.background = '#8ab4f8';
     saveBtn.onclick = () => {
         const newConfig = {
+            ...config,
             language: langSelect.value,
             autoClearCookies: toggleInput.checked,
+            enableReplyNotification: notifInput.checked,
             showUrlInTitleBar: urlToggleInput.checked,
             enableDevTools: devToolsToggleInput.checked, 
-            devToolsMode: modeSelect.value, // Save DevTools mode
+            devToolsMode: modeSelect.value,
             customHomePage: homeInput.value.trim()
         };
         ipcRenderer.send('save-settings', newConfig);
         modal.remove();
-        // Reload to apply language changes
         if (newConfig.language !== config.language) {
              ipcRenderer.send('nav-reload');
         }
     };
 
-    btnContainer.appendChild(cancelBtn);
-    btnContainer.appendChild(saveBtn);
+    footer.appendChild(cancelBtn);
+    footer.appendChild(saveBtn);
 
-    content.appendChild(title);
     content.appendChild(langContainer);
-    content.appendChild(toggleContainer);
-    content.appendChild(urlToggleContainer);
-    content.appendChild(devToolsToggleContainer); 
-    content.appendChild(modeContainer); // Add Mode Selector
+    content.appendChild(toggleList);
+    content.appendChild(modeContainer);
     content.appendChild(homeContainer);
+    content.appendChild(profileContainer); // Includes list inside
     content.appendChild(resetContainer);
-    content.appendChild(btnContainer);
-    modal.appendChild(content);
 
+    dialogContainer.appendChild(header);
+    dialogContainer.appendChild(content);
+    dialogContainer.appendChild(footer);
+    
+    modal.appendChild(dialogContainer);
     document.body.appendChild(modal);
 }
 
@@ -854,16 +1175,22 @@ async function showAboutModal() {
     if (document.getElementById('about-modal')) return;
 
     const config = await ipcRenderer.invoke('get-settings');
-    
-    // Translation Helper (Scoped)
     const t = (key) => {
         let lang = config.language;
         if (lang === 'auto') {
-            const sysLocale = navigator.language;
-            if (sysLocale.startsWith('zh-TW') || sysLocale.startsWith('zh-HK')) lang = 'zh-TW';
-            else if (sysLocale.startsWith('zh')) lang = 'zh-CN';
-            else if (sysLocale.startsWith('ja')) lang = 'ja';
-            else lang = 'en';
+            const sys = navigator.language;
+            if (translations[sys]) {
+                lang = sys;
+            } else {
+                const prefix = sys.split('-')[0];
+                if (translations[prefix]) {
+                    lang = prefix;
+                } else if (sys.toLowerCase().includes('zh')) {
+                    lang = (sys.toLowerCase().includes('tw') || sys.toLowerCase().includes('hk')) ? 'zh-TW' : 'zh-CN';
+                } else {
+                    lang = 'en';
+                }
+            }
         }
         return (translations[lang] && translations[lang][key]) || translations['en'][key] || key;
     };
@@ -876,49 +1203,87 @@ async function showAboutModal() {
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0, 0, 0, 0.5);
+        background: rgba(0, 0, 0, 0.6);
         display: flex;
         justify-content: center;
         align-items: center;
         z-index: 10000;
-        backdrop-filter: blur(5px);
+        font-family: 'Inter', sans-serif;
     `;
+    modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
 
-    const content = document.createElement('div');
-    content.style.cssText = `
-        background: #202124;
-        padding: 30px;
+    const dialogContainer = document.createElement('div');
+    dialogContainer.className = 'mat-mdc-dialog-container mdc-dialog cdk-dialog-container mdc-dialog--open';
+    dialogContainer.style.cssText = `
+        background: #1f1f1f;
         border-radius: 8px;
+        box-shadow: 0 11px 15px -7px #0003, 0 24px 38px 3px #00000024, 0 9px 46px 8px #0000001f;
         width: 400px;
+        max-width: 90vw;
+        max-height: 90vh;
         color: #e8eaed;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        font-family: 'Google Sans', sans-serif;
-        text-align: center;
-        border: 1px solid #5f6368;
+        display: flex;
+        flex-direction: column;
     `;
-
-    // Title
-    const title = document.createElement('h2');
+    
+    // Header
+    const header = document.createElement('div');
+    header.style.cssText = `
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 24px 24px 0 24px;
+        margin-bottom: 10px;
+    `;
+    const title = document.createElement('div');
+    title.className = 'title';
+    title.style.cssText = `
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 24px;
+        font-weight: 500;
+        line-height: 32px;
+        color: #e8eaed;
+    `;
     title.textContent = t('about');
-    title.style.marginTop = '0';
-    title.style.marginBottom = '20px';
-    title.style.color = '#e8eaed';
+    
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '✕';
+    closeBtn.style.cssText = `
+        background: transparent;
+        border: none;
+        color: #e8eaed;
+        cursor: pointer;
+        padding: 8px;
+        font-size: 16px;
+        border-radius: 50%;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    `;
+    closeBtn.onmouseenter = () => closeBtn.style.background = 'rgba(255,255,255,0.08)';
+    closeBtn.onmouseleave = () => closeBtn.style.background = 'transparent';
+    closeBtn.onclick = () => modal.remove();
+    header.appendChild(title);
+    header.appendChild(closeBtn);
 
-    // Description
+    // Content
+    const content = document.createElement('div');
+    content.className = 'custom-dialog-scroll';
+    content.style.cssText = 'padding: 0 24px 24px 24px; text-align: center; flex: 1; overflow-y: auto;';
+
     const desc = document.createElement('p');
     desc.textContent = t('about_desc');
     desc.style.color = '#bdc1c6';
     desc.style.lineHeight = '1.6';
     desc.style.marginBottom = '20px';
 
-    // Version
     const version = document.createElement('p');
     version.textContent = `${t('version')}: 1.0.0`;
     version.style.color = '#9aa0a6';
     version.style.fontSize = '0.9em';
-    version.style.marginBottom = '30px';
+    version.style.marginBottom = '24px';
 
-    // Repo Link
     const repoLink = document.createElement('a');
     repoLink.href = '#';
     repoLink.textContent = t('repo_link');
@@ -926,7 +1291,7 @@ async function showAboutModal() {
         display: block;
         color: #8ab4f8;
         text-decoration: none;
-        margin-bottom: 20px;
+        margin-bottom: 24px;
         font-weight: 500;
     `;
     repoLink.onclick = (e) => {
@@ -934,68 +1299,65 @@ async function showAboutModal() {
         ipcRenderer.send('open-external-link', 'https://github.com/Augus1217/Google-AI-Studio-Desktop');
     };
 
-    // Star Repo (Ad)
+    // Star Repo
     const starContainer = document.createElement('div');
-    starContainer.style.marginBottom = '20px';
-    starContainer.style.padding = '15px';
-    starContainer.style.background = 'rgba(251, 188, 4, 0.1)';
+    starContainer.style.background = 'rgba(251, 188, 4, 0.08)';
     starContainer.style.borderRadius = '8px';
-    starContainer.style.border = '1px solid rgba(251, 188, 4, 0.3)';
-
+    starContainer.style.border = '1px solid rgba(251, 188, 4, 0.2)';
+    starContainer.style.padding = '12px';
+    
     const starLink = document.createElement('a');
     starLink.href = '#';
-    starLink.textContent = t('star_repo');
+    starLink.textContent = '★ ' + t('star_repo');
     starLink.style.cssText = `
-        color: #fbbc04; /* Google Yellow */
+        color: #fbbc04;
         text-decoration: none;
         font-size: 14px;
-        font-weight: bold;
-        transition: opacity 0.2s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
+        font-weight: 500;
+        display: block;
     `;
-    starLink.onmouseenter = () => starLink.style.opacity = '0.8';
-    starLink.onmouseleave = () => starLink.style.opacity = '1';
     starLink.onclick = (e) => {
         e.preventDefault();
         ipcRenderer.send('open-external-link', 'https://github.com/Augus1217/Google-AI-Studio-Desktop');
     };
-    
     starContainer.appendChild(starLink);
 
-    // Close Button
-    const closeBtn = document.createElement('button');
-    closeBtn.textContent = 'Close';
-    closeBtn.style.cssText = `
-        padding: 8px 24px;
-        background: #8ab4f8;
+    content.appendChild(desc);
+    content.appendChild(version);
+    content.appendChild(repoLink);
+    content.appendChild(starContainer);
+
+    // Footer
+    const footer = document.createElement('div');
+    footer.style.cssText = `
+        padding: 8px 24px 24px 24px;
+        display: flex;
+        justify-content: flex-end;
+    `;
+    const footerCloseBtn = document.createElement('button');
+    footerCloseBtn.textContent = 'Close';
+    footerCloseBtn.style.cssText = `
+        padding: 0 24px;
+        height: 36px;
+        background: rgba(138, 180, 248, 0.1);
+        color: #8ab4f8;
         border: none;
-        color: #202124;
         border-radius: 4px;
         cursor: pointer;
-        font-weight: bold;
-        transition: background 0.2s;
+        font-weight: 500;
+        font-size: 14px;
     `;
-    closeBtn.onmouseenter = () => closeBtn.style.background = '#aecbfa';
-    closeBtn.onmouseleave = () => closeBtn.style.background = '#8ab4f8';
-    closeBtn.onclick = () => modal.remove();
+    footerCloseBtn.onmouseenter = () => footerCloseBtn.style.background = 'rgba(138, 180, 248, 0.2)';
+    footerCloseBtn.onmouseleave = () => footerCloseBtn.style.background = 'rgba(138, 180, 248, 0.1)';
+    footerCloseBtn.onclick = () => modal.remove();
+    footer.appendChild(footerCloseBtn);
 
-    content.appendChild(title);
-    content.appendChild(desc);
-    content.appendChild(repoLink);
-    content.appendChild(version);
-    content.appendChild(starContainer);
-    content.appendChild(closeBtn);
-
-    modal.appendChild(content);
+    dialogContainer.appendChild(header);
+    dialogContainer.appendChild(content);
+    dialogContainer.appendChild(footer);
+    
+    modal.appendChild(dialogContainer);
     document.body.appendChild(modal);
-
-    // Close on click outside
-    modal.onclick = (e) => {
-        if (e.target === modal) modal.remove();
-    };
 }
 
 function showCookieModal() {
@@ -1009,73 +1371,142 @@ function showCookieModal() {
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(0,0,0,0.85);
+        background: rgba(0,0,0,0.6);
         z-index: 1000000;
         display: flex;
-        flex-direction: column;
         justify-content: center;
         align-items: center;
         color: #fff;
-        font-family: sans-serif;
+        font-family: 'Inter', sans-serif;
     `;
+    modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
 
-    const content = document.createElement('div');
-    content.style.cssText = `
-        background: #202124;
-        padding: 30px;
+    const dialogContainer = document.createElement('div');
+    dialogContainer.className = 'mat-mdc-dialog-container';
+    dialogContainer.style.cssText = `
+        background: #1f1f1f;
         border-radius: 8px;
-        border: 1px solid #5f6368;
-        width: 400px;
-        max-width: 90%;
-        text-align: center;
+        box-shadow: 0 11px 15px -7px #0003, 0 24px 38px 3px #00000024, 0 9px 46px 8px #0000001f;
+        width: 420px;
+        max-width: 90vw;
+        max-height: 90vh;
+        color: #e8eaed;
+        display: flex;
+        flex-direction: column;
     `;
 
-    const title = document.createElement('h2');
+    // Header
+    const header = document.createElement('div');
+    header.style.cssText = `
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 24px 24px 0 24px;
+    `;
+    const title = document.createElement('div');
     title.textContent = t('external_login');
-    title.style.marginBottom = '20px';
+    title.style.cssText = `
+        font-family: 'Inter Tight', sans-serif;
+        font-size: 24px;
+        font-weight: 500;
+        color: #e8eaed;
+    `;
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '✕';
+    closeBtn.style.cssText = `
+        background: transparent;
+        border: none;
+        color: #e8eaed;
+        cursor: pointer;
+        padding: 8px;
+        font-size: 16px;
+        border-radius: 50%;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    `;
+    closeBtn.onmouseenter = () => closeBtn.style.background = 'rgba(255,255,255,0.08)';
+    closeBtn.onmouseleave = () => closeBtn.style.background = 'transparent';
+    closeBtn.onclick = () => modal.remove();
+    header.appendChild(title);
+    header.appendChild(closeBtn);
+
+    // Content
+    const content = document.createElement('div');
+    content.className = 'custom-dialog-scroll';
+    content.style.cssText = 'padding: 20px 24px; font-size: 14px; flex: 1; overflow-y: auto;';
 
     const step1 = document.createElement('p');
     step1.textContent = t('login_step1');
-    // Note: The link logic is embedded in the text for simplicity in translation, 
-    // but ideally we should split it. For now, let's just append the link handler if needed
-    // or simplify the translation to include the instruction.
-    // The previous code had a link element. Let's recreate it properly.
-    
-    // Re-implementing step 1 with link logic is tricky with simple key-value translation.
-    // Let's simplify: The translation contains the full text. We will just make the whole text clickable or add a button.
-    // Actually, let's keep the link separate if possible.
-    // For now, I will use the translated text as is.
-    
-    // To keep the "Open Google AI Studio" link working, we might need to parse the translation or just add a button below.
-    // Let's add a button for opening the browser instead of a text link to make it cleaner.
-    
-    const linkContainer = document.createElement('div');
-    linkContainer.style.display = 'flex';
-    linkContainer.style.justifyContent = 'center';
-    linkContainer.style.gap = '10px';
-    linkContainer.style.margin = '10px auto';
+    step1.style.cssText = 'margin: 0 0 12px 0; color: #e8eaed;';
 
+    const buttonRow = document.createElement('div');
+    buttonRow.style.cssText = 'display: flex; gap: 8px; margin-bottom: 20px;';
+    
     const openBtn = document.createElement('button');
-    openBtn.textContent = 'Open Google AI Studio';
+    openBtn.textContent = 'Choose Browser...';
     openBtn.style.cssText = `
-        padding: 8px 12px;
-        background: #303134;
-        border: 1px solid #5f6368;
-        color: #8ab4f8;
-        border-radius: 4px;
-        cursor: pointer;
+        flex: 1; padding: 8px 12px; background: rgba(138, 180, 248, 0.1); 
+        color: #8ab4f8; border: 1px solid rgba(138, 180, 248, 0.5); 
+        border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500;
     `;
-    openBtn.onclick = () => ipcRenderer.send('open-external-login');
+
+    // Browser List Dropdown
+    const browserOptionsDiv = document.createElement('div');
+    browserOptionsDiv.style.cssText = 'display: none; flex-direction: column; gap: 4px; margin-bottom: 20px; background: #303134; padding: 8px; border-radius: 4px; border: 1px solid #5f6368;';
+
+    openBtn.onclick = async () => {
+        if (browserOptionsDiv.style.display === 'flex') {
+             browserOptionsDiv.style.display = 'none';
+             return;
+        }
+        
+        const originalText = openBtn.textContent;
+        openBtn.textContent = 'Scanning...';
+        openBtn.disabled = true;
+        
+        try {
+            const browsers = await ipcRenderer.invoke('get-available-browsers');
+            // browserOptionsDiv.innerHTML = ''; // Blocked by TrustedHTML
+            while (browserOptionsDiv.firstChild) {
+                browserOptionsDiv.removeChild(browserOptionsDiv.firstChild);
+            }
+            
+            const createOption = (name, action) => {
+                const btn = document.createElement('button');
+                btn.textContent = name;
+                btn.style.cssText = `
+                    text-align: left; padding: 8px; background: transparent; 
+                    color: #e8eaed; border: none; cursor: pointer; font-size: 13px;
+                    border-radius: 4px; width: 100%; display: flex; align-items: center;
+                `;
+                btn.onmouseenter = () => btn.style.background = 'rgba(255,255,255,0.1)';
+                btn.onmouseleave = () => btn.style.background = 'transparent';
+                btn.onclick = () => {
+                    action();
+                    browserOptionsDiv.style.display = 'none';
+                };
+                browserOptionsDiv.appendChild(btn);
+            };
+            
+            browsers.forEach(b => createOption(b, () => ipcRenderer.send('launch-browser', b)));
+            
+            browserOptionsDiv.style.display = 'flex';
+        } catch(e) {
+            console.error(e);
+        } finally {
+            openBtn.textContent = 'Choose Browser...';
+            openBtn.disabled = false;
+        }
+    };
 
     const copyBtn = document.createElement('button');
     copyBtn.textContent = t('copy_link');
     copyBtn.style.cssText = `
-        padding: 8px 12px;
-        background: #303134;
-        border: 1px solid #5f6368;
-        color: #e8eaed;
-        border-radius: 4px;
-        cursor: pointer;
+        padding: 8px 12px; background: transparent; 
+        color: #e8eaed; border: 1px solid #5f6368; 
+        border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 500;
     `;
     copyBtn.onclick = () => {
         const url = 'https://aistudio.google.com/prompts/new_chat';
@@ -1085,78 +1516,109 @@ function showCookieModal() {
             setTimeout(() => copyBtn.textContent = originalText, 2000);
         });
     };
-
-    linkContainer.appendChild(openBtn);
-    linkContainer.appendChild(copyBtn);
+    buttonRow.appendChild(openBtn);
+    buttonRow.appendChild(copyBtn);
 
     const step2 = document.createElement('p');
-    step2.innerText = t('login_step2'); // Use innerText to handle \n
-    step2.style.margin = '15px 0';
-    step2.style.lineHeight = '1.5';
-    step2.style.fontSize = '0.9em';
-    step2.style.color = '#bdc1c6';
-    step2.style.textAlign = 'left';
+    step2.innerText = t('login_step2');
+    step2.style.cssText = 'margin: 0 0 12px 0; color: #bdc1c6; line-height: 1.5; font-size: 13px;';
 
-    const input = document.createElement('input');
+    const input = document.createElement('textarea'); 
     input.placeholder = t('paste_placeholder');
     input.style.cssText = `
-        width: 100%;
-        padding: 10px;
-        margin: 20px 0;
-        background: #303134;
-        border: 1px solid #5f6368;
-        color: #fff;
-        border-radius: 4px;
-        box-sizing: border-box;
+        width: 100%; height: 60px; padding: 12px; 
+        background: transparent; border: 1px solid #5f6368; 
+        color: #e8eaed; border-radius: 4px; box-sizing: border-box; 
+        font-family: monospace; font-size: 12px; resize: none; margin-bottom: 12px;
+        outline: none;
     `;
+    input.onfocus = () => input.style.borderColor = '#8ab4f8';
+    input.onblur = () => input.style.borderColor = '#5f6368';
 
-    const btnContainer = document.createElement('div');
-    btnContainer.style.display = 'flex';
-    btnContainer.style.justifyContent = 'flex-end';
-    btnContainer.style.gap = '10px';
+    // Account Index
+    const indexContainer = document.createElement('div');
+    indexContainer.style.cssText = 'display: flex; align-items: center; gap: 12px;';
+    
+    const indexLabel = document.createElement('span');
+    indexLabel.textContent = t('account_index');
+    indexLabel.style.color = '#e8eaed';
 
-    const cancelBtn = document.createElement('button');
-    cancelBtn.textContent = t('cancel');
-    cancelBtn.style.cssText = `
-        padding: 8px 16px;
-        background: transparent;
-        border: 1px solid #5f6368;
-        color: #e8eaed;
-        border-radius: 4px;
-        cursor: pointer;
+    const indexInput = document.createElement('input');
+    indexInput.type = 'number';
+    indexInput.min = '0';
+    indexInput.value = '0';
+    indexInput.style.cssText = `
+        width: 50px; padding: 6px; background: transparent; 
+        border: 1px solid #5f6368; color: #e8eaed; 
+        border-radius: 4px; text-align: center;
     `;
-    cancelBtn.onclick = () => modal.remove();
+    
+    const indexHelp = document.createElement('span');
+    indexHelp.textContent = '(' + t('account_index_help') + ')';
+    indexHelp.style.color = '#9aa0a6';
+    indexHelp.style.fontSize = '12px';
 
-    const saveBtn = document.createElement('button');
-    saveBtn.textContent = t('login');
-    saveBtn.style.cssText = `
-        padding: 8px 16px;
-        background: #8ab4f8;
-        border: none;
-        color: #202124;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: bold;
+    indexContainer.appendChild(indexLabel);
+    indexContainer.appendChild(indexInput);
+    indexContainer.appendChild(indexHelp);
+
+    content.appendChild(step1);
+    content.appendChild(buttonRow);
+    content.appendChild(browserOptionsDiv);
+    content.appendChild(step2);
+    content.appendChild(input);
+    content.appendChild(indexContainer);
+
+    // Footer
+    const footer = document.createElement('div');
+    footer.style.cssText = `
+        padding: 16px 24px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        border-top: 1px solid #3c4043;
     `;
-    saveBtn.onclick = () => {
+    
+    const footerCancel = document.createElement('button');
+    footerCancel.textContent = t('cancel');
+    footerCancel.style.cssText = `
+        padding: 0 16px; height: 36px; background: transparent; 
+        color: #8ab4f8; border: none; border-radius: 4px; 
+        cursor: pointer; font-weight: 500;
+    `;
+    footerCancel.onmouseenter = () => footerCancel.style.background = 'rgba(138, 180, 248, 0.08)';
+    footerCancel.onmouseleave = () => footerCancel.style.background = 'transparent';
+    footerCancel.onclick = () => modal.remove();
+
+    const footerLog = document.createElement('button');
+    footerLog.textContent = t('login');
+    footerLog.style.cssText = `
+        padding: 0 16px; height: 36px; background: #8ab4f8; 
+        color: #202124; border: none; border-radius: 4px; 
+        cursor: pointer; font-weight: 500;
+    `;
+    footerLog.onmouseenter = () => footerLog.style.background = '#aecbfa';
+    footerLog.onmouseleave = () => footerLog.style.background = '#8ab4f8';
+    footerLog.onclick = () => {
         const cookieVal = input.value.trim();
+        const accountIndex = indexInput.value.trim() || '0';
         if (cookieVal) {
-            ipcRenderer.send('set-session-cookie', cookieVal);
+            ipcRenderer.send('set-session-cookie', {
+                cookie: cookieVal,
+                accountIndex: accountIndex
+            });
             modal.remove();
         }
     };
 
-    btnContainer.appendChild(cancelBtn);
-    btnContainer.appendChild(saveBtn);
+    footer.appendChild(footerCancel);
+    footer.appendChild(footerLog);
 
-    content.appendChild(title);
-    content.appendChild(step1);
-    content.appendChild(linkContainer);
-    content.appendChild(step2);
-    content.appendChild(input);
-    content.appendChild(btnContainer);
-    modal.appendChild(content);
-
+    dialogContainer.appendChild(header);
+    dialogContainer.appendChild(content);
+    dialogContainer.appendChild(footer);
+    
+    modal.appendChild(dialogContainer);
     document.body.appendChild(modal);
 }
 
@@ -1172,4 +1634,51 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 
     observer.observe(document.body, { childList: true, subtree: false });
+
+    // --- Reply Notification Logic ---
+    let wasGenerating = false;
+    // We use a broader observer to catch deep DOM changes where the button text lives
+    const replyObserver = new MutationObserver((mutations) => {
+        // Try to find the button using stable attributes
+        // Strategy: Look for the specific tooltip class or the Ctrl+Enter hint
+        const runButton = document.querySelector('button[mattooltipclass="run-button-tooltip"]');
+        
+        if (runButton) {
+            const buttonText = runButton.innerText.trim();
+            // console.log('Run Button Text:', buttonText); // Debugging
+
+            // "Run" button state matching (multilingual support might be needed later, but "Run" seems standard in the UI code provided)
+            const isRunState = buttonText.includes('Run') || buttonText.includes('Run') || buttonText.includes('Exécuter'); 
+            // Check for "Stop" or loading state. The user image shows "Stop".
+            const isStopState = buttonText.includes('Stop') || buttonText.includes('Cancel') || runButton.getAttribute('aria-label')?.includes('Stop');
+
+            if (isStopState) {
+                if (!wasGenerating) {
+                     console.log('AI started generating...');
+                     wasGenerating = true;
+                }
+            } else if (isRunState) {
+                // Trigger notification when transitioning from Generating -> Run
+                // IMPORTANT: When the AI finishes, the button returns to "Run" but might be DISABLED 
+                // because the text input is empty. We should trigger regardless of disabled state
+                // as long as we were previously generating.
+                if (wasGenerating) {
+                    console.log('AI finished generating. Notification sent.');
+                    
+                    // Reset flag immediately to prevent duplicate triggers
+                    wasGenerating = false; 
+                    
+                    if (currentConfig && currentConfig.enableReplyNotification !== false) {
+                        ipcRenderer.send('show-notification', {
+                            title: 'Google AI Studio',
+                            body: t('notification_reply_finished') || 'AI Response Finished!'
+                        });
+                    }
+                }
+            }
+        }
+    });
+
+    // Observe the entire body for changes because frameworks like Angular/React rerender heavily
+    replyObserver.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['aria-disabled', 'class', 'disabled'] });
 });

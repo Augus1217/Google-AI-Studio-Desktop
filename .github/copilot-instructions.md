@@ -5,47 +5,55 @@ This is an Electron-based desktop wrapper for [Google AI Studio](https://aistudi
 
 ## Architecture
 - **Main Process (`main.js`)**: 
-  - Manages application lifecycle and window creation.
-  - **Critical**: Applies Chrome command-line switches (e.g., `disable-blink-features=AutomationControlled`) and a custom User-Agent to prevent Google from blocking the login/app as an automated bot.
-  - Handles IPC events for window management (minimize, maximize, close) and session cookie injection.
+  - **Lifecycle**: Manages app lifecycle, window creation, and session persistence.
+  - **Configuration**: Loads/saves settings to `config.json` in `userData` (handled via `loadConfig`/`saveConfig` helpers).
+  - **Anti-Detection**: Applies critical Chrome switches (`disable-blink-features=AutomationControlled`, `disable-site-isolation-trials`) to prevents bot detection.
+  - **I18n**: Loads translation files from `lang/*.json` and serves them via `ipcMain.handle('get-translations')`.
+  - **IPC Handlers**: Manages window controls, navigation events, and profile switching.
 - **Preload Script (`preload.js`)**: 
-  - Runs in an isolated context with access to Node.js APIs via `ipcRenderer`.
-  - **UI Injection**: Manually injects a custom HTML/CSS title bar into the DOM of the loaded external website.
-  - **Anti-Detection**: Aggressively masks `navigator.webdriver` to avoid detection.
+  - **Context Isolation**: Runs in an isolated context; uses `ipcRenderer` to bridge Renderer and Main.
+  - **UI Injection**: Manually injects a custom HTML/CSS title bar (`#custom-title-bar`) into the DOM of the loaded external website.
+  - **Anti-Detection**: Aggressively masks `navigator.webdriver` to undefined to avoid detection.
+  - **I18n Client**: Requests translations on load and provides a `t(key)` helper for the injected UI.
 - **Renderer**: 
-  - Loads the live URL: `https://aistudio.google.com/prompts/new_chat`.
-  - **Note**: The local `Google AI Studio.html` file appears to be a reference artifact and is NOT loaded by the application.
+  - The live URL `https://aistudio.google.com/prompts/new_chat` is loaded directly.
+  - **Note**: The local `Google AI Studio.html` is a reference artifact, NOT the entry point.
 
 ## Key Workflows
 - **Run Application**: `npm start` (executes `electron .`).
+- **Build/Package**: Uses `electron-builder`.
+  - Windows: `npm run build:win`
+  - Linux: `npm run build:linux`
+  - macOS: `npm run build:mac`
 - **Debugging**: 
-  - DevTools are configured to open in `detach` mode by default in `createWindow()`.
-  - Use console logs in `main.js` (terminal output) and `preload.js` (DevTools console).
+  - DevTools mode defaults to `detach`.
+  - Console logs appear in terminal (Main) and DevTools console (Preload/Renderer).
 
 ## Conventions & Patterns
 - **Frameless Window**: 
-  - The `BrowserWindow` is created with `frame: false`.
-  - Window controls are implemented in `preload.js` (HTML/CSS injection) and communicate via IPC to `main.js`.
-- **IPC Communication**:
-  - **Pattern**: Renderer sends `window-{action}` -> Main performs action.
-  - **Channels**: `window-minimize`, `window-maximize`, `window-close`, `open-external-login`, `set-session-cookie`.
-- **Security & Isolation**:
-  - `contextIsolation: true` and `sandbox: true` are enabled.
-  - Direct Node.js integration is disabled in the renderer; all native actions must go through `preload.js`.
+  - `BrowserWindow` created with `frame: false`.
+  - Title bar logic is largely in `preload.js` (DOM creation, event listeners) communicating via IPC (e.g., `window-minimize`, `window-close`).
+- **Internationalization (i18n)**:
+  - Language files (e.g., `en.json`, `zh-TW.json`) reside in the `lang/` directory.
+  - Main process loads these at startup. Renderer requests them via `invoke('get-translations')`.
+  - Auto-detect loop: Config -> System Locale -> Fallback to 'en'.
+- **Profile Management**:
+  - Profiles are folder-based logical separations in `config.json`.
+  - Switching profiles triggers `app.relaunch()` to ensure clean session state.
+- **Security & Cookie Injection**:
+  - **Problem**: Google blocks embedded logins.
+  - **Solution**: "External Login" flow.
+    1. User clicks Key icon (🔑) -> `showCookieModal()`.
+    2. User authenticates in external browser.
+    3. User manually pastes `__Secure-1PSID` cookie.
+    4. IPC `set-session-cookie` sets it on `session.defaultSession`.
 
 ## Critical Implementation Details
-- **Login Handling**: The app includes logic to handle external login flows or manual cookie injection (`__Secure-1PSID`) if the embedded login is blocked.
-- **User-Agent**: A specific Windows/Chrome User-Agent is hardcoded in `main.js` to maintain compatibility. Do not change this unless necessary for unblocking.
-
-## External Login Implementation
-- **Purpose**: Bypasses Google's automated browser detection by allowing users to log in via their default browser and manually transfer the session.
-- **Flow**:
-  1. **Trigger**: User clicks the Key icon (🔑) in the custom title bar.
-  2. **Modal**: `preload.js` renders a modal overlay (`showCookieModal()`).
-  3. **Open Browser**: Link triggers `ipcRenderer.send('open-external-login')`. `main.js` uses `shell.openExternal()`.
-  4. **Cookie Injection**: User pastes `__Secure-1PSID`. `preload.js` sends `ipcRenderer.send('set-session-cookie', value)`.
-  5. **Session Restore**: `main.js` sets the cookie on `session.defaultSession` and reloads the window.
+- **User-Agent & Switches**: check `main.js` for the exact `app.commandLine.appendSwitch` calls. strict adherence is required for the app to function.
+- **DOM Injection**: The title bar is purely DOM manipulation in `preload.js`. Ensure styles (z-index, positioning) don't conflict with Google AI Studio's native UI.
+- **Config Persistence**: `config.json` schema includes `autoClearCookies`, `customHomePage`, `profiles`.
 
 ## Important Files
-- `main.js`: Entry point, window config, IPC handlers.
-- `preload.js`: UI injection, IPC bridge, environment masking.
+- `main.js`: Core logic, IPC implementation, Config/I18n loading.
+- `preload.js`: UI injection, Anti-detection, I18n helper.
+- `lang/`: JSON translation files.
