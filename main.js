@@ -503,13 +503,25 @@ ipcMain.handle('get-available-browsers', async () => {
                 });
                 available.push(browser);
             } else if (process.platform === 'win32') {
-                // Windows is harder to detect without full path. 
-                // For now, let's skip detection-before-launch on Windows or use 'where' for exe?
-                // 'start' command works if it's in PATH or registered.
-                // Simplified: just return them all on Windows? Or try 'where'.
-                // 'where' works for executables (chrome.exe).
+                // Windows Detection Strategy:
+                // 1. Try 'where' (checks %PATH%)
+                // 2. Check Registry "App Paths" (allows 'start chrome' to work even if not in PATH)
+                const exeName = browser + '.exe';
                 await new Promise((resolve, reject) => {
-                    exec(`where ${browser}`, (err) => { if (err) reject(err); else resolve(); });
+                    exec(`where ${browser}`, (err) => {
+                        if (!err) return resolve();
+                        
+                        // Check HKLM App Paths
+                        exec(`reg query "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\${exeName}"`, (err2) => {
+                            if (!err2) return resolve();
+                            
+                            // Check HKCU App Paths (User installs)
+                            exec(`reg query "HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\${exeName}"`, (err3) => {
+                                if (!err3) return resolve();
+                                reject(new Error('Not found'));
+                            });
+                        });
+                    });
                 });
                 available.push(browser);
             }
