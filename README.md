@@ -28,7 +28,7 @@ This is an unofficial desktop client for [Google AI Studio](https://aistudio.goo
 
 1.  **Clone the repository**:
     ```bash
-    git clone <your-repo-url>
+    git clone https://github.com/Augus1217/Google-AI-Studio-Desktop
     cd google-ai-studio-desktop
     ```
 
