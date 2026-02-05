@@ -1,5 +1,8 @@
 # Google AI Studio Desktop
 
+![Google AI Studio Desktop](./Readme-image.png)
+*Note: Screenshot taken on Linux with a highly customized GNOME desktop environment.*
+
 This is an unofficial desktop client for [Google AI Studio](https://aistudio.google.com/), built with Electron. It provides a native-like experience and addresses login issues often encountered in non-standard browser environments.
 
 ## ✨ Features
@@ -10,9 +13,14 @@ This is an unofficial desktop client for [Google AI Studio](https://aistudio.goo
     *   **Auto Clear Cookies**: Option to automatically clear cookies on startup for a clean session.
     *   **Custom Home Page**: Set your preferred starting URL.
     *   **Show URL**: Toggle the display of the current URL in the title bar.
-    *   **Multi-language Support**: Supports English, Traditional Chinese, Simplified Chinese, and Japanese.
+    *   **Multi-language Support**: Supports 15+ languages including English, Chinese, Japanese, German, and more.
+*   **Advanced Features (v1.5.0)**:
+    *   **Persistent Accounts**: Automatically remembers your last active account (e.g., `/u/1`) across sessions.
+    *   **Profile Manager**: Upload and manage custom profile avatars in Settings.
+    *   **Smart Notifications**: Desktop notifications when the AI finishes generating a response (works in Chat & Playground).
+    *   **Auto-Updater**: Check for and download updates directly from the app.
 *   **Login Support**:
-    *   **Direct Login**: Utilizes a specific User-Agent strategy (Chrome 142) to simulate a standard browser environment.
+    *   **Direct Login**: Utilizes a specific User-Agent strategy (Chrome 144) to simulate a standard browser environment.
     *   **External Login**: A fallback mechanism if direct login is blocked by Google. Allows logging in via Chrome/Edge and manually injecting the session cookie.
 *   **Troubleshooting**: Built-in "Reset App" feature to clear all cache and data with one click and restart the application.
 
@@ -61,6 +69,12 @@ The `config.json` file is stored in the user's application data directory:
 *   **Windows**: `%APPDATA%/google-ai-studio-desktop/config.json`
 *   **macOS**: `~/Library/Application Support/google-ai-studio-desktop/config.json`
 
-## 📝 License
+## 🔮 Roadmap (What's Next)
+
+*   **Gemini Desktop Integration**: Seamlessly switch between Google AI Studio and Gemini (gemini.google.com) within the app.
+*   **Custom Themes**: Inject custom CSS for deeper personalization (make it yours!).
+*   **Proxy Settings**: Native interface for configuring proxy settings.
+
+## 📜 License
 
 ISC
