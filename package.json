@@ -1,6 +1,6 @@
 {
   "name": "google-ai-studio-desktop",
-  "version": "1.0.0",
+  "version": "1.5.0",
   "description": "Unofficial Google AI Studio Desktop Client",
   "main": "main.js",
   "scripts": {
@@ -18,32 +18,10 @@
       "target": [
         "AppImage",
         "deb",
-        "snap",
         "rpm",
         "zip"
       ],
       "category": "Development"
-    },
-    "snap": {
-      "grade": "devel",
-      "confinement": "devmode",
-      "plugs": [
-        "default",
-        "network",
-        "desktop",
-        "desktop-legacy",
-        "x11",
-        "wayland",
-        "opengl",
-        "browser-support",
-        "audio-playback",
-        "home",
-        "removable-media"
-      ],
-      "environment": {
-        "DISABLE_WAYLAND": "1",
-        "WAYLAND_DISPLAY": ""
-      }
     },
     "win": {
       "icon": "icon.png",
@@ -62,6 +40,12 @@
         },
         {
           "target": "zip",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "msi",
           "arch": [
             "x64"
           ]

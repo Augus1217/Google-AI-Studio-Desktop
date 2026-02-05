@@ -45,7 +45,7 @@ Google has strict checks for browser environments. If you encounter a login bloc
     *   Click "Open Google AI Studio" (this attempts to open the link in your external Chrome or Edge browser).
     *   Log in to Google AI Studio in your external browser.
     *   Open Developer Tools (F12) -> **Network** tab.
-    *   Refresh the page and click on any request (e.g., `new_chat`).
+    *   Refresh the page and click on the first request.
     *   Under **Headers** -> **Request Headers**, find the `Cookie` field.
     *   Copy the entire Cookie value, paste it into the application's dialog box, and confirm.
 3.  **Reset App**:

@@ -777,7 +777,7 @@ async function showSettingsModal() {
         option.textContent = m.label;
         option.style.backgroundColor = '#1f1f1f';
         option.style.color = '#e8eaed';
-        if ((config.devToolsMode || 'detach') === m.code) option.selected = true;
+        if ((config.devToolsMode || 'right') === m.code) option.selected = true;
         modeSelect.appendChild(option);
     });
     modeSelect.onfocus = () => modeSelect.style.borderColor = '#8ab4f8';
@@ -798,27 +798,37 @@ async function showSettingsModal() {
     modeSelect.onchange = updateDevToolsState;
 
 
-    // Custom Home Page Input
+    // Startup Page Settings
     const homeContainer = createSection();
-    const homeLabel = document.createElement('label');
-    homeLabel.textContent = t('custom_home_page');
-    homeLabel.style.cssText = labelStyle;
+    const startupLabel = document.createElement('label');
+    startupLabel.textContent = t('startup_page') || 'Startup Page';
+    startupLabel.style.cssText = labelStyle;
+    homeContainer.appendChild(startupLabel);
 
+    const startupOptions = [
+        { id: 'startup-home', value: 'home', label: t('startup_home') || 'Use Home Page' },
+        { id: 'startup-custom', value: 'custom', label: t('startup_custom') || 'Custom URL' },
+        { id: 'startup-last', value: 'last', label: t('startup_last') || 'Continue where I left off' }
+    ];
+
+    const currentStartupMode = config.startUpMode || 'home';
+    let selectedMode = currentStartupMode;
+
+    // Custom URL Input Wrapper
     const homeInputWrapper = document.createElement('div');
-    homeInputWrapper.style.display = 'flex';
-    homeInputWrapper.style.gap = '8px';
+    homeInputWrapper.style.cssText = 'display: none; flex-direction: column; gap: 8px; margin-left: 24px; margin-top: 4px; margin-bottom: 12px;';
 
     const homeInput = document.createElement('input');
     homeInput.type = 'text';
     homeInput.value = config.customHomePage || '';
+    homeInput.placeholder = 'https://...';
     homeInput.style.cssText = inputStyle + ' flex-grow: 1;';
     homeInput.onfocus = () => homeInput.style.borderColor = '#8ab4f8';
     homeInput.onblur = () => homeInput.style.borderColor = '#5f6368';
     
-    // "Set Current" Button styled like Material Icon Button
+    // "Set Current" Button
     const setHomeBtn = document.createElement('button');
-    setHomeBtn.textContent = '⌂ Set Current'; 
-    setHomeBtn.title = 'Set current page as home page';
+    setHomeBtn.textContent = '⌂ ' + (t('set_current_url') || 'Set Current'); 
     setHomeBtn.style.cssText = `
         padding: 0 16px;
         height: 36px;
@@ -833,24 +843,59 @@ async function showSettingsModal() {
         white-space: nowrap;
         display: flex;
         align-items: center;
+        width: fit-content;
     `;
-    
     setHomeBtn.onmouseenter = () => setHomeBtn.style.background = 'rgba(138, 180, 248, 0.08)';
     setHomeBtn.onmouseleave = () => setHomeBtn.style.background = 'transparent';
     
     setHomeBtn.onclick = () => {
         homeInput.value = window.location.href;
         const originalText = setHomeBtn.textContent;
-        setHomeBtn.textContent = '✓ Set';
-        setTimeout(() => {
-            setHomeBtn.textContent = originalText;
-        }, 1000);
+        setHomeBtn.textContent = '✓ ' + (t('set_url_done') || 'Set');
+        setTimeout(() => { setHomeBtn.textContent = originalText; }, 1000);
     };
-
+    
     homeInputWrapper.appendChild(homeInput);
     homeInputWrapper.appendChild(setHomeBtn);
-    homeContainer.appendChild(homeLabel);
-    homeContainer.appendChild(homeInputWrapper);
+
+    // Create Radios
+    startupOptions.forEach(opt => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display: flex; align-items: center; margin-bottom: 8px; cursor: pointer;';
+        
+        const radio = document.createElement('input');
+        radio.type = 'radio';
+        radio.name = 'startup_mode';
+        radio.value = opt.value;
+        radio.id = opt.id;
+        if (currentStartupMode === opt.value) radio.checked = true;
+        radio.style.marginRight = '8px';
+        radio.style.cursor = 'pointer';
+        
+        const label = document.createElement('label');
+        label.textContent = opt.label;
+        label.htmlFor = opt.id;
+        label.style.cursor = 'pointer';
+        label.style.fontSize = '14px';
+        label.style.color = '#e8eaed';
+
+        row.appendChild(radio);
+        row.appendChild(label);
+        homeContainer.appendChild(row);
+        
+        // Append input wrapper after 'custom' option
+        if (opt.value === 'custom') {
+            homeContainer.appendChild(homeInputWrapper);
+        }
+
+        radio.onchange = () => {
+            selectedMode = radio.value;
+            homeInputWrapper.style.display = (selectedMode === 'custom') ? 'flex' : 'none';
+        };
+    });
+    
+    // Init state
+    if (currentStartupMode === 'custom') homeInputWrapper.style.display = 'flex';
 
     // Profile Management Section
     const profileContainer = createSection();
@@ -921,6 +966,41 @@ async function showSettingsModal() {
                 border-bottom: 1px solid #3c4043;
                 padding: 12px 0;
             `;
+            
+            // Profile Image
+            const imgContainer = document.createElement('div');
+            imgContainer.style.cssText = 'width: 32px; height: 32px; margin-right: 12px; cursor: pointer; flex-shrink: 0; position: relative;';
+            imgContainer.title = t('change_icon') || 'Change Icon';
+
+            const img = document.createElement('img');
+            img.style.cssText = 'width: 100%; height: 100%; border-radius: 50%; object-fit: cover; background: #5f6368; display: block;';
+            const defaultAvatar = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23e8eaed'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E`;
+            img.src = defaultAvatar;
+
+            ipcRenderer.invoke('get-profile-image', p).then(dataUrl => {
+                if (dataUrl) img.src = dataUrl;
+            });
+            
+            imgContainer.onclick = async (e) => {
+                e.stopPropagation(); 
+                const newUrl = await ipcRenderer.invoke('select-profile-image', p);
+                if (newUrl) img.src = newUrl;
+            };
+
+            const editOverlay = document.createElement('div');
+            editOverlay.style.cssText = 'position: absolute; top:0; left:0; width:100%; height:100%; border-radius: 50%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s;';
+            
+            const editIcon = document.createElement('span');
+            editIcon.textContent = '✎';
+            editIcon.style.cssText = 'color:white; font-size:12px;';
+            editOverlay.appendChild(editIcon);
+            
+            imgContainer.onmouseenter = () => editOverlay.style.opacity = '1';
+            imgContainer.onmouseleave = () => editOverlay.style.opacity = '0';
+            
+            imgContainer.appendChild(img);
+            imgContainer.appendChild(editOverlay);
+            row.appendChild(imgContainer);
             
             // Name Container
             const nameContainer = document.createElement('div');
@@ -1096,9 +1176,13 @@ async function showSettingsModal() {
     resetBtn.onmouseenter = () => resetBtn.style.background = 'rgba(255, 138, 128, 0.1)';
     resetBtn.onmouseleave = () => resetBtn.style.background = 'transparent';
     resetBtn.onclick = () => {
-        if (confirm(t('reset_app_confirm'))) {
-            ipcRenderer.send('reset-app');
-        }
+        ipcRenderer.send('reset-app-request', {
+            title: t('reset_app'),
+            message: t('reset_app_confirm'),
+            detail: t('reset_app_detail'),
+            confirm: 'OK',
+            cancel: t('cancel')
+        });
     };
     resetContainer.appendChild(resetBtn);
 
@@ -1144,7 +1228,8 @@ async function showSettingsModal() {
             showUrlInTitleBar: urlToggleInput.checked,
             enableDevTools: devToolsToggleInput.checked, 
             devToolsMode: modeSelect.value,
-            customHomePage: homeInput.value.trim()
+            customHomePage: homeInput.value.trim(),
+            startUpMode: document.querySelector('input[name="startup_mode"]:checked').value
         };
         ipcRenderer.send('save-settings', newConfig);
         modal.remove();
@@ -1279,7 +1364,7 @@ async function showAboutModal() {
     desc.style.marginBottom = '20px';
 
     const version = document.createElement('p');
-    version.textContent = `${t('version')}: 1.0.0`;
+    version.textContent = `${t('version')}: 1.5.0`;
     version.style.color = '#9aa0a6';
     version.style.fontSize = '0.9em';
     version.style.marginBottom = '24px';
@@ -1297,6 +1382,21 @@ async function showAboutModal() {
     repoLink.onclick = (e) => {
         e.preventDefault();
         ipcRenderer.send('open-external-link', 'https://github.com/Augus1217/Google-AI-Studio-Desktop');
+    };
+
+    const changelogLink = document.createElement('a');
+    changelogLink.href = '#';
+    changelogLink.textContent = t('view_changelog') || 'View Changelog'; 
+    changelogLink.style.cssText = `
+        display: block;
+        color: #8ab4f8;
+        text-decoration: none;
+        margin-bottom: 24px;
+        font-weight: 500;
+    `;
+    changelogLink.onclick = (e) => {
+        e.preventDefault();
+        showChangelogModal('1.5.0');
     };
 
     // Star Repo
@@ -1322,10 +1422,79 @@ async function showAboutModal() {
     };
     starContainer.appendChild(starLink);
 
+    // Update Check Section
+    const updateContainer = document.createElement('div');
+    updateContainer.style.marginTop = '16px';
+    updateContainer.style.textAlign = 'center';
+
+    const checkBtn = document.createElement('button');
+    checkBtn.textContent = t('check_for_updates') || 'Check for Updates';
+    checkBtn.style.cssText = `
+        background: transparent;
+        border: 1px solid #5f6368;
+        color: #e8eaed;
+        border-radius: 4px;
+        padding: 8px 16px;
+        cursor: pointer;
+        font-size: 13px;
+        font-family: inherit;
+    `;
+    checkBtn.onmouseenter = () => checkBtn.style.backgroundColor = 'rgba(255,255,255,0.1)';
+    checkBtn.onmouseleave = () => checkBtn.style.backgroundColor = 'transparent';
+
+    const statusMsg = document.createElement('div');
+    statusMsg.style.marginTop = '8px';
+    statusMsg.style.fontSize = '13px';
+    statusMsg.style.color = '#bdc1c6';
+    statusMsg.style.display = 'none';
+
+    checkBtn.onclick = async () => {
+        checkBtn.disabled = true;
+        checkBtn.textContent = t('checking_updates') || 'Checking...';
+        statusMsg.style.display = 'none';
+
+        try {
+            const result = await ipcRenderer.invoke('check-for-updates');
+            
+            if (result.error) {
+                 statusMsg.textContent = t('update_error') || 'Error';
+                 statusMsg.style.color = '#ff8a80';
+                 statusMsg.style.display = 'block';
+                 checkBtn.textContent = t('check_for_updates');
+                 checkBtn.disabled = false;
+            } else if (result.updateAvailable) {
+                 statusMsg.textContent = (t('update_available') || 'Update Available: {0}').replace('{0}', result.latestVersion);
+                 statusMsg.style.color = '#8ab4f8';
+                 statusMsg.style.display = 'block';
+                 
+                 checkBtn.textContent = t('download_update') || 'Download';
+                 checkBtn.style.borderColor = '#8ab4f8';
+                 checkBtn.style.color = '#8ab4f8';
+                 checkBtn.disabled = false;
+                 checkBtn.onclick = () => {
+                     ipcRenderer.send('open-external-link', result.releaseUrl);
+                 };
+            } else {
+                 statusMsg.textContent = t('no_update_found') || 'Latest version.';
+                 statusMsg.style.color = '#81c995'; // Green
+                 statusMsg.style.display = 'block';
+                 checkBtn.textContent = t('check_for_updates');
+                 checkBtn.disabled = false;
+            }
+        } catch (e) {
+            checkBtn.disabled = false;
+            checkBtn.textContent = t('check_for_updates');
+        }
+    };
+
+    updateContainer.appendChild(checkBtn);
+    updateContainer.appendChild(statusMsg);
+
     content.appendChild(desc);
     content.appendChild(version);
     content.appendChild(repoLink);
     content.appendChild(starContainer);
+    content.appendChild(updateContainer);
 
     // Footer
     const footer = document.createElement('div');
@@ -1358,6 +1527,262 @@ async function showAboutModal() {
     
     modal.appendChild(dialogContainer);
     document.body.appendChild(modal);
+}
+
+function showChangelogModal(versionStr) {
+    if (document.getElementById('changelog-modal')) return;
+
+    // 1.5.0 Changelog
+    const version = versionStr || '1.5.0';
+    const features = [
+        t('changelog_1'),
+        t('changelog_2'),
+        t('changelog_3'),
+        t('changelog_4'),
+        t('changelog_5')
+    ];
+
+    const modal = document.createElement('div');
+    modal.id = 'changelog-modal';
+    modal.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.7); display: flex;
+        justify-content: center; align-items: center; z-index: 10001;
+        font-family: 'Inter', sans-serif;
+    `;
+    modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+
+    const container = document.createElement('div');
+    container.style.cssText = `
+        background: #1f1f1f; border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        width: 500px; max-width: 90vw; max-height: 85vh;
+        color: #e8eaed; display: flex; flex-direction: column;
+        border: 1px solid #3c4043;
+    `;
+
+    // Header
+    const header = document.createElement('div');
+    header.style.cssText = 'padding: 24px; border-bottom: 1px solid #3c4043; display: flex; justify-content: space-between; align-items: center;';
+    
+    const title = document.createElement('div');
+    title.style.fontSize = '22px';
+    title.style.fontWeight = '500';
+    title.textContent = (t('changelog_title') || "What's New in v{0}").replace('{0}', version);
+    
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '✕';
+    closeBtn.style.cssText = 'background:none; border:none; color:#9aa0a6; cursor:pointer; font-size:20px;';
+    closeBtn.onclick = () => modal.remove();
+    
+    header.appendChild(title);
+    header.appendChild(closeBtn);
+
+    // Content
+    const content = document.createElement('div');
+    content.className = 'custom-dialog-scroll';
+    content.style.cssText = 'padding: 24px; overflow-y: auto; line-height: 1.6;';
+
+    const list = document.createElement('ul');
+    list.style.cssText = 'padding-left: 20px; margin: 0;';
+    
+    features.forEach(feat => {
+        const item = document.createElement('li');
+        item.textContent = feat;
+        item.style.marginBottom = '12px';
+        item.style.color = '#bdc1c6';
+        list.appendChild(item);
+    });
+
+    content.appendChild(list);
+
+    // Footer
+    const footer = document.createElement('div');
+    footer.style.cssText = 'padding: 16px 24px; border-top: 1px solid #3c4043; display: flex; justify-content: flex-end;';
+    
+    const okBtn = document.createElement('button');
+    okBtn.textContent = t('changelog_close') || 'Awesome!';
+    okBtn.style.cssText = `
+        background: #8ab4f8; color: #202124; border: none;
+        padding: 8px 24px; border-radius: 4px; font-weight: 500;
+        cursor: pointer;
+    `;
+    okBtn.onclick = () => modal.remove();
+
+    footer.appendChild(okBtn);
+    
+    container.appendChild(header);
+    container.appendChild(content);
+    container.appendChild(footer);
+    modal.appendChild(container);
+
+    document.body.appendChild(modal);
+}
+
+function showUpdateCelebration(version) {
+    // Container
+    const overlay = document.createElement('div');
+    overlay.id = 'update-celebration-overlay';
+    overlay.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.85); z-index: 20000;
+        display: flex; flex-direction: column; justify-content: center; align-items: center;
+        cursor: pointer; opacity: 0; transition: opacity 0.5s ease;
+        font-family: 'Inter', sans-serif; text-align: center;
+    `;
+
+    // Canvas for Confetti
+    const canvas = document.createElement('canvas');
+    canvas.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;';
+    overlay.appendChild(canvas);
+
+    // Text Content
+    const title = document.createElement('h1');
+    title.textContent = `Hurray! You've Updated To v${version}!`;
+    title.style.cssText = `
+        color: #fff; font-size: 36px; margin-bottom: 20px;
+        text-shadow: 0 4px 10px rgba(0,0,0,0.5); z-index: 1;
+        transform: scale(0.8); opacity: 0; transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    `;
+
+    const subText = document.createElement('p');
+    subText.textContent = "Click to View What's New In v1.5.0 ->";
+    subText.style.cssText = `
+        position: absolute; bottom: 80px;
+        color: #8ab4f8; font-size: 16px; font-weight: 500;
+        z-index: 1; opacity: 0;
+        animation: pulseText 2s infinite ease-in-out;
+    `;
+
+    // Animation Keyframes
+    if (!document.getElementById('celebration-styles')) {
+        const style = document.createElement('style');
+        style.id = 'celebration-styles';
+        style.textContent = `
+            @keyframes pulseText {
+                0% { opacity: 0.6; transform: translateY(0); }
+                50% { opacity: 1; transform: translateY(-5px); }
+                100% { opacity: 0.6; transform: translateY(0); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    overlay.appendChild(title);
+    overlay.appendChild(subText);
+    document.body.appendChild(overlay);
+
+    // Confetti Logic
+    const ctx = canvas.getContext('2d');
+    let width = window.innerWidth;
+    let height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
+
+    const particles = [];
+    const colors = ['#4285F4', '#DB4437', '#F4B400', '#0F9D58', '#FFFFFF']; // Google Colors
+
+    function createParticle(x, y, velocityX, velocityY) {
+        return {
+            x: x, y: y,
+            vx: velocityX, vy: velocityY,
+            size: Math.random() * 8 + 4,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            rotation: Math.random() * 360,
+            rotationSpeed: (Math.random() - 0.5) * 10,
+            gravity: 0.4, // Heavier gravity to prevent them flying off-screen for too long
+            friction: 0.99
+        };
+    }
+
+    // Initial Burst (The "Bang!")
+    function fireConfetti() {
+        // Left Corner Explosion
+        for (let i = 0; i < 150; i++) {
+            particles.push(createParticle(
+                0, height, 
+                Math.random() * 20 + 5, // vx towards right
+                -(Math.random() * 20 + 25) // vy reduced height (was 25+40) so they stay visible
+            ));
+        }
+        // Right Corner Explosion
+        for (let i = 0; i < 150; i++) {
+            particles.push(createParticle(
+                width, height, 
+                -(Math.random() * 20 + 5), // vx towards left
+                -(Math.random() * 20 + 25) // vy reduced height
+            ));
+        }
+    }
+    
+    // Fire once immediately
+    fireConfetti();
+
+    // Cleanup logic (runs after 4 seconds to ensure everything handles gracefully, 
+    // though particles will fall off naturally)
+    setTimeout(() => {
+        // Stop animation loop to save resources if users stare at it
+        // cancelAnimationFrame(animationId);
+    }, 4000);
+
+    let animationId;
+    function animate() {
+        ctx.clearRect(0, 0, width, height);
+        
+        for (let i = 0; i < particles.length; i++) {
+            const p = particles[i];
+            
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += p.gravity;
+            p.vx *= p.friction;
+            p.rotation += p.rotationSpeed;
+            
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.rotation * Math.PI / 180);
+            ctx.fillStyle = p.color;
+            ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+            ctx.restore();
+            
+            if (p.y > height) {
+                particles.splice(i, 1);
+                i--;
+            }
+        }
+        
+        animationId = requestAnimationFrame(animate);
+    }
+    animate();
+
+    // Show contents
+    requestAnimationFrame(() => {
+        overlay.style.opacity = '1';
+        title.style.opacity = '1';
+        title.style.transform = 'scale(1)';
+        
+        setTimeout(() => {
+             subText.style.opacity = '1'; 
+        }, 500);
+    });
+
+    // Cleanup and Proceed
+    overlay.onclick = () => {
+        cancelAnimationFrame(animationId);
+        overlay.style.opacity = '0';
+        setTimeout(() => {
+            overlay.remove();
+            showChangelogModal(version);
+        }, 500);
+    };
+    
+    // Handle Resize
+    window.addEventListener('resize', () => {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+    });
 }
 
 function showCookieModal() {
@@ -1445,7 +1870,7 @@ function showCookieModal() {
     buttonRow.style.cssText = 'display: flex; gap: 8px; margin-bottom: 20px;';
     
     const openBtn = document.createElement('button');
-    openBtn.textContent = 'Choose Browser...';
+    openBtn.textContent = 'Choose Browser... (Beta)';
     openBtn.style.cssText = `
         flex: 1; padding: 8px 12px; background: rgba(138, 180, 248, 0.1); 
         color: #8ab4f8; border: 1px solid rgba(138, 180, 248, 0.5); 
@@ -1496,7 +1921,7 @@ function showCookieModal() {
         } catch(e) {
             console.error(e);
         } finally {
-            openBtn.textContent = 'Choose Browser...';
+            openBtn.textContent = 'Choose Browser... (Beta)';
             openBtn.disabled = false;
         }
     };
@@ -1520,8 +1945,26 @@ function showCookieModal() {
     buttonRow.appendChild(copyBtn);
 
     const step2 = document.createElement('p');
-    step2.innerText = t('login_step2');
-    step2.style.cssText = 'margin: 0 0 12px 0; color: #bdc1c6; line-height: 1.5; font-size: 13px;';
+    const rawStep2 = t('login_step2');
+    // Highlight the first line (Important warning)
+    const splitIdx = rawStep2.indexOf('\n');
+    
+    step2.style.cssText = 'margin: 0 0 12px 0; color: #bdc1c6; line-height: 1.5; font-size: 13px; white-space: pre-wrap;';
+
+    if (splitIdx !== -1) {
+        const part1 = rawStep2.substring(0, splitIdx);
+        const part2 = rawStep2.substring(splitIdx); // Includes the newline
+        
+        const warningSpan = document.createElement('span');
+        warningSpan.textContent = part1;
+        warningSpan.style.color = '#ff8a80'; // Red
+        warningSpan.style.fontWeight = 'bold';
+        
+        step2.appendChild(warningSpan);
+        step2.appendChild(document.createTextNode(part2));
+    } else {
+        step2.innerText = rawStep2;
+    }
 
     const input = document.createElement('textarea'); 
     input.placeholder = t('paste_placeholder');
@@ -1625,6 +2068,161 @@ function showCookieModal() {
 window.addEventListener('DOMContentLoaded', () => {
     injectTitleBar();
 
+    // Listen for login success event from main process
+    ipcRenderer.on('login-success', () => {
+        const tooltip = document.createElement('div');
+        tooltip.textContent = t('login_success_tooltip');
+        tooltip.style.cssText = `
+            position: fixed;
+            top: 60px;
+            right: 20px;
+            background: #1e8e3e; /* Google Green Darker */
+            color: #ffffff;
+            padding: 10px 20px;
+            border-radius: 24px;
+            font-family: 'Google Sans', 'Roboto', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 10000;
+            box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        `;
+        
+        // Add checkmark icon
+        const icon = document.createElement('span');
+        // TrustedHTML compliant SVG creation
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("width", "18");
+        svg.setAttribute("height", "18");
+        svg.setAttribute("viewBox", "0 0 24 24");
+        svg.setAttribute("fill", "currentColor");
+        
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", "M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z");
+        
+        svg.appendChild(path);
+        icon.appendChild(svg);
+        
+        tooltip.prepend(icon);
+
+        document.body.appendChild(tooltip);
+
+        // Animate in
+        requestAnimationFrame(() => {
+            tooltip.style.opacity = '1';
+            tooltip.style.transform = 'translateY(0)';
+        });
+
+        // Remove after 4 seconds
+        setTimeout(() => {
+            tooltip.style.opacity = '0';
+            tooltip.style.transform = 'translateY(-10px)';
+            setTimeout(() => {
+                tooltip.remove();
+            }, 300);
+        }, 4000);
+    });
+
+    // Listen for login failure event from main process
+    ipcRenderer.on('login-failed', () => {
+        const tooltip = document.createElement('div');
+        tooltip.style.cssText = `
+            position: fixed;
+            top: 60px;
+            right: 20px;
+            background: #d93025; /* Google Red 600 */
+            color: #ffffff;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-family: 'Google Sans', 'Roboto', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 10000;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+        `;
+        
+        const messageRow = document.createElement('div');
+        messageRow.style.display = 'flex';
+        messageRow.style.alignItems = 'center';
+        messageRow.style.gap = '8px';
+
+        // Warning Icon
+        const icon = document.createElement('span');
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("width", "18");
+        svg.setAttribute("height", "18");
+        svg.setAttribute("viewBox", "0 0 24 24");
+        svg.setAttribute("fill", "currentColor");
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z");
+        svg.appendChild(path);
+        icon.appendChild(svg);
+        
+        const text = document.createElement('span');
+        text.textContent = t('login_failed_tooltip');
+        
+        messageRow.appendChild(icon);
+        messageRow.appendChild(text);
+
+        const retryBtn = document.createElement('button');
+        retryBtn.textContent = t('retry_login');
+        retryBtn.style.cssText = `
+            align-self: flex-end;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 500;
+            transition: background 0.2s;
+        `;
+        retryBtn.onmouseover = () => retryBtn.style.background = 'rgba(255, 255, 255, 0.3)';
+        retryBtn.onmouseout = () => retryBtn.style.background = 'rgba(255, 255, 255, 0.2)';
+        retryBtn.onclick = () => {
+            tooltip.remove();
+            showCookieModal();
+        };
+
+        tooltip.appendChild(messageRow);
+        tooltip.appendChild(retryBtn);
+        document.body.appendChild(tooltip);
+
+        // Animate in
+        requestAnimationFrame(() => {
+            tooltip.style.opacity = '1';
+            tooltip.style.transform = 'translateY(0)';
+        });
+
+        // Auto remove after 10 seconds if no interaction
+        setTimeout(() => {
+            if (document.body.contains(tooltip)) {
+                tooltip.style.opacity = '0';
+                tooltip.style.transform = 'translateY(-10px)';
+                setTimeout(() => tooltip.remove(), 300);
+            }
+        }, 10000);
+    });
+
+    // Listen for Changelog Show Request
+    ipcRenderer.on('show-changelog', (event, version) => {
+        showUpdateCelebration(version);
+    });
+
     // Watch for DOM changes (SPA navigation/hydration might remove our bar)
     const observer = new MutationObserver((mutations) => {
         if (!document.getElementById('custom-title-bar')) {
@@ -1639,10 +2237,12 @@ window.addEventListener('DOMContentLoaded', () => {
     let wasGenerating = false;
     // We use a broader observer to catch deep DOM changes where the button text lives
     const replyObserver = new MutationObserver((mutations) => {
-        // Try to find the button using stable attributes
-        // Strategy: Look for the specific tooltip class or the Ctrl+Enter hint
+        // 1. Run Button Logic (Playground)
         const runButton = document.querySelector('button[mattooltipclass="run-button-tooltip"]');
-        
+        // 2. Chat UI Logic (Send/Stop)
+        const sendButton = document.querySelector('button[aria-label="Send"]'); // Provided by user
+        const stopButton = document.querySelector('button[aria-label*="Stop"]'); // Generic Stop for Chat
+
         if (runButton) {
             const buttonText = runButton.innerText.trim();
             // console.log('Run Button Text:', buttonText); // Debugging
@@ -1675,6 +2275,26 @@ window.addEventListener('DOMContentLoaded', () => {
                         });
                     }
                 }
+            }
+        } else {
+            // Chat UI Fallback
+            if (stopButton) {
+                if (!wasGenerating) {
+                     console.log('AI started generating (Chat Mode)...');
+                     wasGenerating = true;
+                }
+            } else if (sendButton) {
+                 // The presence of the Send button (even if disabled) implies we are not generating
+                 if (wasGenerating) {
+                     console.log('AI finished generating (Chat Mode). Notification sent.');
+                     wasGenerating = false;
+                     if (currentConfig && currentConfig.enableReplyNotification !== false) {
+                        ipcRenderer.send('show-notification', {
+                            title: 'Google AI Studio',
+                            body: t('notification_reply_finished') || 'AI Response Finished!'
+                        });
+                    }
+                 }
             }
         }
     });

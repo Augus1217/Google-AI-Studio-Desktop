@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell, session, Menu, MenuItem } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, session, Menu, MenuItem, dialog, nativeImage } = require('electron');
 const { Notification } = require('electron');
 const { exec, spawn } = require('child_process');
 const path = require('path');
@@ -13,21 +13,36 @@ if (!app.isPackaged) {
 
 // Config Management
 const configPath = path.join(app.getPath('userData'), 'config.json');
+const profileImagesDir = path.join(app.getPath('userData'), 'profile_images');
+
+// Ensure profile images directory exists
+if (!fs.existsSync(profileImagesDir)) {
+    try {
+        fs.mkdirSync(profileImagesDir, { recursive: true });
+    } catch (e) {
+        console.error('Failed to create profile images directory:', e);
+    }
+}
+
 const defaultProfileSettings = {
     autoClearCookies: false,
     enableReplyNotification: true,
+    startUpMode: 'home', // 'home', 'custom', 'last'
     customHomePage: 'https://aistudio.google.com/',
+    lastOpenUrl: '',
     showUrlInTitleBar: false,
     enableDevTools: false,
-    devToolsMode: 'detach',
+    devToolsMode: 'right',
     windowControlsPosition: 'auto',
-    language: 'auto'
+    language: 'auto',
+    activeAccountIndex: '0' // Default to 0
 };
 
 const defaultConfig = {
     // Global Settings
     profiles: ['default'],
     activeProfile: 'default',
+    lastSeenVersion: '0.0.0',
     
     // Per-Profile Settings Store
     // Structure: { 'default': { ...settings }, 'work': { ...settings } }
@@ -301,6 +316,8 @@ ipcMain.on('active-profile-settings-updated', (event, { profiles, activeProfile 
     event.sender.send('settings-updated', config);
 });
 
+
+
 ipcMain.on('switch-profile', (event, profileName) => {
     const config = loadConfig();
     if (config.profiles.includes(profileName)) {
@@ -408,6 +425,49 @@ ipcMain.on('delete-profile', (event, profileName) => {
     }
 });
 
+ipcMain.on('reset-app-request', async (event, labels) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    const { response } = await dialog.showMessageBox(win, {
+        type: 'warning',
+        buttons: [labels.cancel || 'Cancel', labels.confirm || 'Reset'],
+        defaultId: 0,
+        cancelId: 0,
+        title: labels.title || 'Reset App',
+        message: labels.message || 'Are you sure?',
+        detail: labels.detail || 'This will delete all data (cookies, settings, profiles) and restart the application.'
+    });
+
+    if (response === 1) {
+        // 1. Delete Config
+        try {
+            if (fs.existsSync(configPath)) {
+                fs.unlinkSync(configPath);
+            }
+        } catch (e) {
+            console.error('Failed to delete config:', e);
+        }
+
+        // 2. Delete Profile Images
+        try {
+            if (fs.existsSync(profileImagesDir)) {
+                fs.rmSync(profileImagesDir, { recursive: true, force: true });
+            }
+        } catch (e) {
+            console.error('Failed to delete profile images:', e);
+        }
+
+        // 3. Clear Session Data (Best Effort)
+        try {
+            await session.defaultSession.clearStorageData();
+            await event.sender.session.clearStorageData();
+        } catch (e) {}
+
+        // 3. Relaunch
+        app.relaunch();
+        app.exit(0);
+    }
+});
+
 ipcMain.on('nav-back', (event) => {
     if (event.sender.canGoBack()) event.sender.goBack();
 });
@@ -422,7 +482,20 @@ ipcMain.on('nav-reload', (event) => {
 
 ipcMain.on('nav-home', (event) => {
     const config = getEffectiveConfig();
-    event.sender.loadURL(config.customHomePage || defaultProfileSettings.customHomePage);
+    let targetUrl = 'https://aistudio.google.com/'; // Absolute default
+
+    if (config.startUpMode === 'custom' && config.customHomePage) {
+        // Mode 1: Completely Custom
+        targetUrl = config.customHomePage;
+    } else {
+        // Mode 2: Standard Home (Default)
+        // Respect Account Index if available
+        const index = config.activeAccountIndex || '0';
+        // Base URL + /u/X/ ensures we stay on the cached account index
+        targetUrl = `https://aistudio.google.com/u/${index}/`;
+    }
+    
+    event.sender.loadURL(targetUrl);
 });
 
 ipcMain.handle('get-settings', () => {
@@ -443,7 +516,7 @@ ipcMain.on('save-settings', (event, newConfig) => {
     if (updatedConfig.enableDevTools) {
              event.sender.closeDevTools();
              setTimeout(() => {
-                event.sender.openDevTools({ mode: updatedConfig.devToolsMode || 'detach' });
+                event.sender.openDevTools({ mode: updatedConfig.devToolsMode || 'right' });
              }, 100);
     } else {
              event.sender.closeDevTools();
@@ -457,7 +530,7 @@ ipcMain.on('set-devtools-state', (event, { open, mode }) => {
     if (open) {
              event.sender.closeDevTools();
              setTimeout(() => {
-                event.sender.openDevTools({ mode: mode || 'detach' });
+                event.sender.openDevTools({ mode: mode || 'right' });
              }, 100);
     } else {
              event.sender.closeDevTools();
@@ -530,8 +603,93 @@ ipcMain.handle('get-available-browsers', async () => {
     return available;
 });
 
+// Profile Image Handlers
+ipcMain.handle('get-profile-image', async (event, profileName) => {
+    if (!profileName) return null;
+    const safeName = profileName.replace(/[^a-zA-Z0-9_-]/g, '');
+    const imagePath = path.join(profileImagesDir, `${safeName}.png`);
+    
+    try {
+        if (fs.existsSync(imagePath)) {
+            // Read file and convert to Data URL
+            const image = nativeImage.createFromPath(imagePath);
+            return image.toDataURL();
+        }
+    } catch (e) {
+        console.error('Failed to load profile image:', e);
+    }
+    return null; // Return null to show default placeholder
+});
+
+ipcMain.handle('select-profile-image', async (event, profileName) => {
+    if (!profileName) return null;
+    const window = BrowserWindow.fromWebContents(event.sender);
+    
+    const { canceled, filePaths } = await dialog.showOpenDialog(window, {
+        title: 'Select Profile Picture',
+        filters: [{ name: 'Images', extensions: ['jpg', 'png', 'jpeg', 'webp'] }],
+        properties: ['openFile']
+    });
+
+    if (canceled || filePaths.length === 0) return null;
+
+    const sourcePath = filePaths[0];
+    const safeName = profileName.replace(/[^a-zA-Z0-9_-]/g, '');
+    const destPath = path.join(profileImagesDir, `${safeName}.png`);
+
+    try {
+        // Use nativeImage to resize and convert to PNG
+        const image = nativeImage.createFromPath(sourcePath);
+        const resized = image.resize({ width: 256, height: 256 }); // Resize for optimal storage
+        const buffer = resized.toPNG();
+        
+        fs.writeFileSync(destPath, buffer);
+        
+        return resized.toDataURL(); // Return new image immediately
+    } catch (e) {
+        console.error('Failed to save profile image:', e);
+        return null;
+    }
+});
+
+// Version Compare Helper
+function compareVersions(v1, v2) {
+    const p1 = v1.replace(/^v/, '').split('.').map(Number);
+    const p2 = v2.replace(/^v/, '').split('.').map(Number);
+    for (let i = 0; i < Math.max(p1.length, p2.length); i++) {
+        const n1 = p1[i] || 0;
+        const n2 = p2[i] || 0;
+        if (n1 > n2) return 1;
+        if (n1 < n2) return -1;
+    }
+    return 0;
+}
+
+ipcMain.handle('check-for-updates', async () => {
+    try {
+        const response = await fetch('https://api.github.com/repos/Augus1217/Google-AI-Studio-Desktop/releases/latest');
+        if (!response.ok) throw new Error('Network response was not ok');
+        const data = await response.json();
+        
+        const latestVersion = data.tag_name; 
+        const currentVersion = app.getVersion();
+        
+        const updateAvailable = compareVersions(latestVersion, currentVersion) > 0;
+        
+        return {
+            updateAvailable,
+            latestVersion,
+            currentVersion,
+            releaseUrl: data.html_url
+        };
+    } catch (error) {
+        console.error('Update check failed:', error);
+        return { error: error.message };
+    }
+});
+
 ipcMain.on('launch-browser', async (event, browser) => {
-    const url = 'https://aistudio.google.com/prompts/new_chat';
+    const url = 'https://aistudio.google.com/';
     try {
         if (process.platform === 'linux') {
             const child = spawn(browser, [url], { detached: true, stdio: 'ignore' });
@@ -548,7 +706,7 @@ ipcMain.on('launch-browser', async (event, browser) => {
 });
 
 ipcMain.on('open-external-default', async () => {
-    await shell.openExternal('https://aistudio.google.com/prompts/new_chat');
+    await shell.openExternal('https://aistudio.google.com/');
 });
 
 // Deprecated: kept for safety if UI not updated immediately, but mapped to new logic? 
@@ -612,7 +770,24 @@ ipcMain.on('set-session-cookie', async (event, arg) => {
         // Construct URL with account index
         const targetUrl = `https://aistudio.google.com/u/${accountIndex}/prompts/new_chat?model=gemini-3-pro-preview`;
         console.log(`Deep linking to account index ${accountIndex}: ${targetUrl}`);
-        event.sender.loadURL(targetUrl);
+        
+        // Save the account index to settings so it persists for Home/Restart
+        updateActiveProfileSettings({ activeAccountIndex: accountIndex });
+        
+        try {
+            await event.sender.loadURL(targetUrl);
+            const currentURL = event.sender.getURL();
+            // 520 is a common error code for Google AI Studio when cookies are invalid/incomplete
+            // asking for re-auth
+            if (!currentURL.includes('/520') && !currentURL.includes('accounts.google.com')) {
+                event.sender.send('login-success');
+            } else {
+                console.log('Login likely failed (detected 520 or login redirect), skipping success tooltip.');
+                event.sender.send('login-failed');
+            }
+        } catch (navErr) {
+            console.error('Navigation failed during login:', navErr);
+        }
     } catch (error) {
         console.error('Failed to process cookies:', error);
     }
@@ -666,8 +841,25 @@ function createWindow() {
     }
 
     // Load the live URL (Default or Custom)
-    const startUrl = config.customHomePage || defaultConfig.customHomePage;
+    let startUrl = `https://aistudio.google.com/u/${config.activeAccountIndex || '0'}/`; // Smart Default
+    
+    if (config.startUpMode === 'custom' && config.customHomePage) {
+        startUrl = config.customHomePage;
+    } else if (config.startUpMode === 'last' && config.lastOpenUrl) {
+        startUrl = config.lastOpenUrl;
+    }
+    
+    console.log(`Loading URL (${config.startUpMode}): ${startUrl}`);
     win.loadURL(startUrl);
+
+    // Save Last URL on Close
+    win.on('close', () => {
+        const currentUrl = win.webContents.getURL();
+        // Avoid saving special pages (error pages, etc) if needed, but generally save everything
+        if (currentUrl.startsWith('http')) {
+            updateActiveProfileSettings({ lastOpenUrl: currentUrl });
+        }
+    });
 
     // URL Tracking
     const sendUrlUpdate = () => {
@@ -704,7 +896,7 @@ function createWindow() {
 
     // Check DevTools config
     if (config.enableDevTools) {
-         win.webContents.openDevTools({ mode: config.devToolsMode || 'detach' });
+         win.webContents.openDevTools({ mode: config.devToolsMode || 'right' });
     }
 
     // Context Menu
@@ -765,6 +957,28 @@ function createWindow() {
     });
 
     // Intercept new window requests (e.g. target="_blank") and open in default browser
+    // Check for Updates / Changelog
+    win.webContents.on('did-finish-load', () => {
+        const currentVersion = app.getVersion();
+        const globalConfig = loadConfig(); // access raw config for global properties
+        
+        // Ensure lastSeenVersion exists (for first run or migration)
+        if (!globalConfig.lastSeenVersion) {
+             globalConfig.lastSeenVersion = '0.0.0';
+        }
+
+        if (globalConfig.lastSeenVersion !== currentVersion) {
+            console.log(`Version change detected: ${globalConfig.lastSeenVersion} -> ${currentVersion}`);
+            
+            // Show Changelog
+            win.webContents.send('show-changelog', currentVersion);
+            
+            // Update stored version
+            globalConfig.lastSeenVersion = currentVersion;
+            saveConfig(globalConfig);
+        }
+    });
+
     win.webContents.setWindowOpenHandler(({ url }) => {
         if (url.startsWith('https:') || url.startsWith('http:')) {
             shell.openExternal(url);
